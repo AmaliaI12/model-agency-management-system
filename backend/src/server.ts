@@ -29,7 +29,7 @@ app.post("/api/login", async (req, res) => {
       .input("email", email)
       .input("parola", password)
       .query(
-        "SELECT email, rol, AgentieID FROM utilizatori WHERE email = @email AND parola = @parola"
+        "SELECT nume, email, rol, AgentieID FROM utilizatori WHERE email = @email AND parola = @parola"
       );
 
     await pool.close();
@@ -38,6 +38,7 @@ app.post("/api/login", async (req, res) => {
       const user = result.recordset[0];
       res.json({
         message: "Login successful",
+        name: user.nume,
         email: user.email,
         rol: user.rol,
         agencyId: user.AgentieID || "", // only for managers

@@ -2,13 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
 
-function Login() {
+interface UserData {
+  id: number;
+  name: string;
+  rol: string;
+  agencyId?: number;
+}
+
+interface LoginProps {
+  onLoginSuccess?: (userData: UserData) => void;
+}
+
+function Login({ onLoginSuccess }: LoginProps) {
   const [values, setValues] = useState({
     email: "",
     password: ""
   });
 
-  const [error, setError] = useState(""); // API error
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -36,9 +47,17 @@ function Login() {
       if (response.ok) {
         console.log("Login successful:", data);
 
-        localStorage.setItem("userAgencyId", data.agencyId || "666");
+        const userData: UserData = {
+          id: data.id,
+          name: data.name,
+          rol: data.rol,
+          agencyId: data.agencyId
+        };
 
-        // Redirect based on role
+        // Save to localStorage (so other pages can read it)
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("userAgencyId", data.agencyId || "");
+
         switch (data.rol) {
           case 'admin':
             navigate('/admin');
@@ -47,7 +66,11 @@ function Login() {
             navigate('/manager');
             break;
           case 'client':
-            navigate('/client');
+            if (onLoginSuccess) {
+              onLoginSuccess(userData);
+              setIsSubmitting(false);
+              return;
+            }
             break;
           default:
             navigate('/'); // fallback
