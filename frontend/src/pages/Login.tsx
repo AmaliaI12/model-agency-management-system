@@ -36,6 +36,8 @@ function Login() {
       if (response.ok) {
         console.log("Login successful:", data);
 
+        localStorage.setItem("userAgencyId", data.agencyId || "666");
+
         // Redirect based on role
         switch (data.rol) {
           case 'admin':

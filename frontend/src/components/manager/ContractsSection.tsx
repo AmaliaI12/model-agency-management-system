@@ -3,7 +3,6 @@ import "../../styles/AdminDashboard.css";
 
 interface Contract {
     id: number;
-    agencyID: number;
     clientId: number;
     startDate: string;
     status: string;
@@ -11,28 +10,42 @@ interface Contract {
     payment: number;
 }
 
-const ContractsTable: React.FC = () => {
+interface Props {
+  agencyId: string | null;
+}
+
+const ContractsSection: React.FC<Props> = ({ agencyId }) => {
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [editing, setEditing] = useState<Contract | null>(null);
     const [newContract, setNewContract] = useState<Partial<Contract>>({});
 
     const fetchContracts = async () => {
-        const res = await fetch("http://localhost:5000/api/contracts");
-        const data = await res.json();
-        setContracts(data);
-    };
+    if (!agencyId) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/manager/contracts?agencyId=${agencyId}`);
+      const data = await res.json();
+      setContracts(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
     useEffect(() => {
         fetchContracts();
-    }, []);
+    }, [agencyId]);
 
     // Handle create
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
+        const contractToSend = {
+            ...newContract,
+            agencyId: Number(agencyId),
+        };
         await fetch("http://localhost:5000/api/contracts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newContract),
+            body: JSON.stringify(contractToSend),
         });
         setNewContract({});
         fetchContracts();
@@ -41,12 +54,16 @@ const ContractsTable: React.FC = () => {
     // Handle update
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+        const contractToSend = {
+            ...editing,
+            agencyId: Number(agencyId),
+        };
         if (!editing) return;
         console.error("Contract ID:", editing.id);
         await fetch(`http://localhost:5000/api/contracts/${editing.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(editing),
+            body: JSON.stringify(contractToSend),
         });
         setEditing(null);
         fetchContracts();
@@ -64,12 +81,6 @@ const ContractsTable: React.FC = () => {
 
             {/* Add form */}
             <form onSubmit={handleAdd} className="admin-form">
-                <input
-                    type="number"
-                    placeholder="Agency ID"
-                    value={newContract.agencyID || ""}
-                    onChange={(e) => setNewContract({ ...newContract, agencyID: Number(e.target.value) })}
-                />
                 <input
                     type="number"
                     placeholder="Client ID"
@@ -115,13 +126,10 @@ const ContractsTable: React.FC = () => {
                 <button type="submit">Add</button>
             </form>
 
-
-
-            {/* Contracts table */}
+            {/* Contracts Section */}
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Agency ID</th>
                     <th>Client ID</th>
                     <th>Start Date</th>
                     <th>Status</th>
@@ -135,7 +143,6 @@ const ContractsTable: React.FC = () => {
                     editing?.id === contract.id ? (
                         <tr key={contract.id}>
                             <td>{contract.id}</td>
-                            <td><input value={editing.agencyID} onChange={(e) => setEditing({ ...editing, agencyID: Number(e.target.value) })} /></td>
                             <td><input value={editing.clientId} onChange={(e) => setEditing({ ...editing, clientId: Number(e.target.value) })} /></td>
                             <td><input value={editing.startDate} onChange={(e) => setEditing({ ...editing, startDate: e.target.value })} /></td>
                             <td>
@@ -173,7 +180,6 @@ const ContractsTable: React.FC = () => {
                     ) : (
                         <tr key={contract.id}>
                             <td>{contract.id}</td>
-                            <td>{contract.agencyID}</td>
                             <td>{contract.clientId}</td>
                             <td>{contract.startDate.slice(0, 10)}</td>
                             <td>{contract.status}</td>
@@ -192,4 +198,4 @@ const ContractsTable: React.FC = () => {
     );
 };
 
-export default ContractsTable;
+export default ContractsSection;

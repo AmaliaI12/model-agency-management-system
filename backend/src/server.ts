@@ -29,7 +29,7 @@ app.post("/api/login", async (req, res) => {
       .input("email", email)
       .input("parola", password)
       .query(
-        "SELECT email, rol FROM utilizatori WHERE email = @email AND parola = @parola"
+        "SELECT email, rol, AgentieID FROM utilizatori WHERE email = @email AND parola = @parola"
       );
 
     await pool.close();
@@ -40,6 +40,7 @@ app.post("/api/login", async (req, res) => {
         message: "Login successful",
         email: user.email,
         rol: user.rol,
+        agencyId: user.AgentieID || "", // only for managers
       });
     } else {
       res.status(401).json({ error: "Invalid email or password" });
@@ -614,7 +615,7 @@ app.get("/api/contracts", async (req, res) => {
     const result = await pool.request().query(`
       SELECT 
         ContractID AS id, 
-        ModelID AS modelId, 
+        AgentieID AS agencyId, 
         ClientID AS clientId, 
         DataInceput AS startDate,
         Status AS status,
@@ -632,21 +633,21 @@ app.get("/api/contracts", async (req, res) => {
 
 // POST create new contract
 app.post("/api/contracts", async (req, res) => {
-  const { modelId, clientId, startDate, status, contractType, payment } =
+  const { agencyId, clientId, startDate, status, contractType, payment } =
     req.body;
 
   try {
     const pool = await getConnection();
     await pool
       .request()
-      .input("ModelID", modelId)
+      .input("AgentieID", agencyId)
       .input("ClientID", clientId)
       .input("DataInceput", startDate)
       .input("Status", status)
       .input("TipContract", contractType)
       .input("Valoare", payment).query(`
-        INSERT INTO Contracte (ModelID, ClientID, DataInceput, Status, TipContract, Valoare)
-        VALUES (@ModelID, @ClientID, @DataInceput, @Status, @TipContract, @Valoare)
+        INSERT INTO Contracte (AgentieID, ClientID, DataInceput, Status, TipContract, Valoare)
+        VALUES (@AgentieID, @ClientID, @DataInceput, @Status, @TipContract, @Valoare)
       `);
 
     await pool.close();
@@ -660,7 +661,7 @@ app.post("/api/contracts", async (req, res) => {
 // PUT update contracts
 app.put("/api/contracts/:id", async (req, res) => {
   const { id } = req.params;
-  const { modelId, clientId, startDate, status, contractType, payment } =
+  const { agencyId, clientId, startDate, status, contractType, payment } =
     req.body;
 
   try {
@@ -668,7 +669,7 @@ app.put("/api/contracts/:id", async (req, res) => {
     await pool
       .request()
       .input("ContractID", id)
-      .input("ModelID", modelId)
+      .input("AgentieID", agencyId)
       .input("ClientID", clientId)
       .input("DataInceput", startDate)
       .input("Status", status)
@@ -676,7 +677,7 @@ app.put("/api/contracts/:id", async (req, res) => {
       .input("Valoare", payment).query(`
         UPDATE Contracte
         SET 
-          ModelID = @ModelID,
+          AgentieID = @AgentieID,
           ClientID = @ClientID,
           DataInceput = @DataInceput,
           Status = @Status,
@@ -821,7 +822,6 @@ app.delete("/api/events/:id", async (req, res) => {
   }
 });
 
-
 app.get("/api/participations", async (req, res) => {
   try {
     const pool = await getConnection();
@@ -845,12 +845,12 @@ app.post("/api/participations", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request()
+    await pool
+      .request()
       .input("modelId", modelId)
       .input("eventId", eventId)
       .input("role", role)
-      .input("payment", payment)
-      .query(`
+      .input("payment", payment).query(`
         INSERT INTO Participari (ModelID, EvenimentID, Rol, Plata)
         VALUES (@modelId, @eventId, @role, @payment)
       `);
@@ -868,12 +868,12 @@ app.put("/api/participations/:modelId/:eventId", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request()
+    await pool
+      .request()
       .input("modelId", modelId)
       .input("eventId", eventId)
       .input("role", role)
-      .input("payment", payment)
-      .query(`
+      .input("payment", payment).query(`
         UPDATE Participari
         SET Rol = @role, Plata = @payment
         WHERE ModelID = @modelId AND EvenimentID = @eventId
@@ -891,9 +891,7 @@ app.delete("/api/participations/:modelId/:eventId", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request()
-      .input("modelId", modelId)
-      .input("eventId", eventId)
+    await pool.request().input("modelId", modelId).input("eventId", eventId)
       .query(`
         DELETE FROM Participari
         WHERE ModelID = @modelId AND EvenimentID = @eventId
@@ -905,7 +903,6 @@ app.delete("/api/participations/:modelId/:eventId", async (req, res) => {
     res.status(500).json({ error: "Failed to delete participation" });
   }
 });
-
 
 // USERS
 
@@ -932,8 +929,7 @@ app.get("/api/users", async (req, res) => {
 
 // POST create new user
 app.post("/api/users", async (req, res) => {
-  const { name, email, password, role} =
-    req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     const pool = await getConnection();
@@ -942,8 +938,7 @@ app.post("/api/users", async (req, res) => {
       .input("Nume", name)
       .input("Email", email)
       .input("Parola", password)
-      .input("Rol", role)
-      .query(`
+      .input("Rol", role).query(`
         INSERT INTO Utilizatori (Nume, Email, Parola, Rol)
         VALUES (@Nume, @Email, @Parola, @Rol)
       `);
@@ -959,8 +954,7 @@ app.post("/api/users", async (req, res) => {
 // PUT update users
 app.put("/api/users/:id", async (req, res) => {
   const { id } = req.params;
-   const { name, email, password, role} =
-    req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     const pool = await getConnection();
@@ -970,8 +964,7 @@ app.put("/api/users/:id", async (req, res) => {
       .input("Nume", name)
       .input("Email", email)
       .input("Parola", password)
-      .input("Rol", role)
-      .query(`
+      .input("Rol", role).query(`
         UPDATE Utilizatori
         SET
           Nume = @Nume,
@@ -1007,6 +1000,51 @@ app.delete("/api/users/:id", async (req, res) => {
   }
 });
 
+app.get("/api/manager/models", async (req, res) => {
+  const agencyId = req.query.agencyId;
+  const pool = await getConnection();
+
+  const result = await pool.request().input("agencyId", agencyId).query(`
+    SELECT 
+      ModelID AS id, 
+      NumeModel AS lastName, 
+      PrenumeModel AS firstName, 
+      Varsta AS age, 
+      Inaltime AS height,
+      Greutate AS weight,
+      AgentieID AS agencyId,
+      DataInregistrare AS date,
+      CategorieID AS categoryId,
+      Sex AS gender 
+    FROM Modele 
+    WHERE AgentieID = @agencyId`);
+
+  await pool.close();
+  res.json(result.recordset);
+});
+
+app.get("/api/manager/contracts", async (req, res) => {
+  try {
+    const agencyId = req.query.agencyId;
+    const pool = await getConnection();
+    const result = await pool.request().input("agencyId", agencyId).query(`
+      SELECT 
+        ContractID AS id, 
+        ClientID AS clientId, 
+        DataInceput AS startDate,
+        Status AS status,
+        TipContract AS contractType,
+        Valoare AS payment
+      FROM Contracte
+      WHERE AgentieID = @agencyId
+    `);
+    res.json(result.recordset);
+    await pool.close();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch contracts" });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

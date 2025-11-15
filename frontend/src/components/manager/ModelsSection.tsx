@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "../../styles/AdminDashboard.css";
 
 interface Model {
   id: number;
@@ -14,29 +13,43 @@ interface Model {
   gender: string;
 }
 
-const ModelsTable: React.FC = () => {
+
+interface Props {
+  agencyId: string | null;
+}
+
+const ModelsSection: React.FC<Props> = ({ agencyId }) => {
   const [models, setModels] = useState<Model[]>([]);
   const [editing, setEditing] = useState<Model | null>(null);
   const [newModel, setNewModel] = useState<Partial<Model>>({});
 
-  // Fetch all models
   const fetchModels = async () => {
-    const res = await fetch("http://localhost:5000/api/modele");
-    const data = await res.json();
-    setModels(data);
+    if (!agencyId) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/manager/models?agencyId=${agencyId}`);
+      const data = await res.json();
+      setModels(data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
     fetchModels();
-  }, []);
+  }, [agencyId]);
 
   // Handle create
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    const modelToSend = {
+      ...newModel,
+      agencyId: Number(agencyId),
+    };
     await fetch("http://localhost:5000/api/modele", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newModel),
+      body: JSON.stringify(modelToSend),
     });
     setNewModel({});
     fetchModels();
@@ -110,14 +123,6 @@ const ModelsTable: React.FC = () => {
         />
         <input
           type="number"
-          placeholder="Agency ID"
-          value={newModel.agencyId ?? ""}
-          onChange={(e) =>
-            setNewModel({ ...newModel, agencyId: Number(e.target.value) })
-          }
-        />
-        <input
-          type="number"
           placeholder="Category ID"
           value={newModel.categoryId ?? ""}
           onChange={(e) =>
@@ -135,7 +140,7 @@ const ModelsTable: React.FC = () => {
         <button type="submit">Add</button>
       </form>
 
-      {/* Models Table */}
+      {/* Models Section */}
       <table className="admin-table">
         <thead>
           <tr>
@@ -145,7 +150,6 @@ const ModelsTable: React.FC = () => {
             <th>Age</th>
             <th>Height</th>
             <th>Weight</th>
-            <th>Agency ID</th>
             <th className={editing ? "hide-column" : ""}>Date</th>
             <th>Category ID</th>
             <th>Gender</th>
@@ -200,18 +204,7 @@ const ModelsTable: React.FC = () => {
                     }
                   />
                 </td>
-                <td>
-                  <input
-                    type="number"
-                    value={editing.agencyId}
-                    onChange={(e) =>
-                      setEditing({
-                        ...editing,
-                        agencyId: Number(e.target.value),
-                      })
-                    }
-                  />
-                </td>
+
                 <td>
                   <input
                     type="number"
@@ -248,7 +241,6 @@ const ModelsTable: React.FC = () => {
                 <td>{model.age}</td>
                 <td>{model.height}</td>
                 <td>{model.weight}</td>
-                <td>{model.agencyId}</td>
                 <td className={editing ? "hide-column" : ""}>
                   {model.date?.slice(0, 10)}
                 </td>
@@ -268,4 +260,4 @@ const ModelsTable: React.FC = () => {
   );
 };
 
-export default ModelsTable;
+export default ModelsSection;

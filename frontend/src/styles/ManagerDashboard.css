@@ -4,14 +4,14 @@ body {
   margin: 0%;
 }
 
-.admin-dashboard {
+.manager-dashboard {
   font-family: "Poppins", sans-serif;
   color: #333;
   display: flex;
   height: 100vh;
 }
 
-.admin-nav {
+.manager-nav {
   width: 220px;
   transition: width 0.3s;
   overflow: hidden;
@@ -21,12 +21,12 @@ body {
 
 }
 
-.admin-nav.closed {
+.manager-nav.closed {
   width: 40px;
   /* collapsed width */
 }
 
-.admin-nav .toggle-btn {
+.manager-nav .toggle-btn {
   background: none;
   border: none;
   font-size: 1.2rem;
@@ -34,46 +34,38 @@ body {
   margin: 10px;
 }
 
-/* 
-.admin-nav {
-  width: 220px;
-  background-color: #1a1a1a;
-  color: white;
-  padding: 1.5rem;
-} */
-
-.admin-nav h2 {
+.manager-nav h2 {
   font-size: 1.4rem;
   margin-bottom: 2rem;
 }
 
-.admin-nav ul {
+.manager-nav ul {
   list-style: none;
   padding: 0;
 }
 
-.admin-nav li {
+.manager-nav li {
   margin-bottom: 1rem;
 }
 
-.admin-nav a {
+.manager-nav a {
   color: white;
   text-decoration: none;
   font-weight: 500;
 }
 
-.admin-nav a:hover {
+.manager-nav a:hover {
   color: #e63946;
 }
 
-.admin-content {
+.manager-content {
   flex: 1;
   padding: 2rem;
   background: #f8f9fa;
   overflow-y: auto;
 }
 
-.admin-section {
+.manager-section {
   background: white;
   padding: 1.5rem;
   border-radius: 0.75rem;
@@ -81,20 +73,20 @@ body {
   margin-bottom: 2rem;
 }
 
-.admin-form {
+.manager-form {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
-.admin-form input {
+.manager-form input {
   flex: 1;
   padding: 0.5rem;
   border-radius: 0.5rem;
   border: 1px solid #ccc;
 }
 
-.admin-form button {
+.manager-form button {
   background-color: #e63946;
   color: white;
   border: none;
@@ -103,7 +95,7 @@ body {
   cursor: pointer;
 }
 
-.admin-form button:hover {
+.manager-form button:hover {
   background-color: #a3202b;
 }
 

@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import HomePage from './pages/HomePage';
 import AdminDashboard from './pages/AdminDashboard';
+import ManagerDashboard from "./pages/ManagerDashboard";
+
 
 function App() {
   // test connection to backend using api/hello
@@ -23,7 +25,7 @@ function App() {
       <Route path='/Login' element={<Login/>}></Route>
       <Route path='/Signup' element={<Signup/>}></Route>
       <Route path="/admin" element={<AdminDashboard />} />
-
+      <Route path="/manager" element={<ManagerDashboard />} />
     </Routes>
     </BrowserRouter>
   );
