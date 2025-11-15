@@ -1,10 +1,9 @@
 // import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AgentiiList from './components/agencies/AgenciesList';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import HomePage from './pages/HomePage';
-
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   // test connection to backend using api/hello
@@ -23,7 +22,8 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path='/Login' element={<Login/>}></Route>
       <Route path='/Signup' element={<Signup/>}></Route>
-      <Route path="/agencies" element={<AgentiiList />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+
     </Routes>
     </BrowserRouter>
   );
