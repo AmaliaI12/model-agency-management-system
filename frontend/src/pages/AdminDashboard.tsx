@@ -2,7 +2,8 @@ import '../styles/AdminDashboard.css';
 import AgenciesTable from "../components/admin/AgenciesTable";
 import ModelsTable from '../components/admin/ModelsTable';
 import LocationsTable from '../components/admin/LocationsTable';
-
+import ClientsTable from '../components/admin/ClientsTable';
+import CategoriesTable from '../components/admin/CategoriesTable';
 
 export default function AdminDashboard() {
   return (
@@ -14,6 +15,7 @@ export default function AdminDashboard() {
           <li><a href="#models">Models</a></li>
           <li><a href="#locations">Locations</a></li>
           <li><a href="#clients">Clients</a></li>
+          <li><a href="#categories">Model Categories</a></li>
         </ul>
       </nav>
 
@@ -23,28 +25,30 @@ export default function AdminDashboard() {
           <AgenciesTable />
         </section>
 
-        <section id="models"> 
+        <section id="models">
           <h3>Manage Models</h3>
           <ModelsTable />
         </section>
 
         <section id="locations">
           <h3>Manage Locations</h3>
-            <LocationsTable />
+          <LocationsTable />
         </section>
 
         <section id="clients">
           <h3>Manage Clients</h3>
+          <ClientsTable />
         </section>
 
         <section id="categories">
-          <h3>Manage Categories</h3>
+          <h3>Manage Model Categories</h3>
+          <CategoriesTable />
         </section>
 
         <section id="locations">
           <h3>Manage Clients</h3>
         </section>
-        
+
       </main>
     </div>
   );

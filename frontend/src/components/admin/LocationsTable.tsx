@@ -43,7 +43,6 @@ const LocationsTable: React.FC = () => {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!editing) return;
-        console.error("Model ID:", editing.id);
         await fetch(`http://localhost:5000/api/locations/${editing.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },

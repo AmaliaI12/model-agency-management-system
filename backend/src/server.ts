@@ -14,8 +14,76 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello!' });
 });
 
-// AGENTII
+// Login route
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required." });
+  }
+
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("email", email)
+      .input("parola", password)
+      .query("SELECT email, rol FROM utilizatori WHERE email = @email AND parola = @parola");
+
+    await pool.close();
+
+    if (result.recordset.length > 0) {
+      const user = result.recordset[0];
+      res.json({ message: "Login successful", email: user.email, rol: user.rol });
+    } else {
+      res.status(401).json({ error: "Invalid email or password" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Login failed" });
+  }
+});
+
+
+app.post('/api/signup', async (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "Name, email, and password are required." });
+  }
+
+  try {
+    const pool = await getConnection();
+
+    // Check if email already exists
+    const existingUser = await pool
+      .request()
+      .input("email", email)
+      .query("SELECT email FROM utilizatori WHERE email = @email");
+
+    if (existingUser.recordset.length > 0) {
+      await pool.close();
+      return res.status(400).json({ error: "Email already registered." });
+    }
+
+    // Insert new user (default role: client)
+    await pool
+      .request()
+      .input("name", name)
+      .input("email", email)
+      .input("parola", password)
+      .input("rol", "client")
+      .query("INSERT INTO Utilizatori (nume, email, parola, rol) VALUES (@name, @email, @parola, @rol)");
+
+    await pool.close();
+    res.json({ message: "User created successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+// AGENTII
 app.get('/api/agentii', async (req, res) => {
   try {
     const pool = await getConnection();
@@ -35,7 +103,6 @@ app.get('/api/agentii', async (req, res) => {
     res.status(500).json({ error: "Failed to fetch agencies" });
   }
 });
-
 
 app.post('/api/agentii', async (req, res) => {
   const { name, adresa, email, telefon } = req.body;
@@ -64,7 +131,6 @@ app.post('/api/agentii', async (req, res) => {
     res.status(500).json({ error: "Failed to create agency" });
   }
 });
-
 
 app.put('/api/agentii/:id', async (req, res) => {
   const { id } = req.params;
@@ -273,7 +339,7 @@ app.post("/api/locations", async (req, res) => {
   }
 });
 
-// PUT update model
+// PUT update location
 app.put("/api/locations/:id", async (req, res) => {
   const { id } = req.params;
    const { name, adresa, city, capacity, phone } = req.body;
@@ -323,74 +389,193 @@ app.delete("/api/locations/:id", async (req, res) => {
 });
 
 
-// Login route
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
+// CLIENTS
 
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required." });
-  }
-
+// GET all clients
+app.get('/api/clients', async (req, res) => {
   try {
     const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("email", email)
-      .input("parola", password)
-      .query("SELECT email, rol FROM utilizatori WHERE email = @email AND parola = @parola");
-
+    const result = await pool.request().query(`
+      SELECT 
+        ClientID AS id, 
+        NumeClient AS name, 
+        TipClient AS cliType,
+        Telefon AS phone,
+        Email AS email, 
+        Adresa AS adress
+      FROM Clienti
+    `);
+    res.json(result.recordset);
     await pool.close();
-
-    if (result.recordset.length > 0) {
-      const user = result.recordset[0];
-      res.json({ message: "Login successful", email: user.email, rol: user.rol });
-    } else {
-      res.status(401).json({ error: "Invalid email or password" });
-    }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Login failed" });
+    res.status(500).json({ error: "Failed to fetch clients" });
   }
 });
 
-
-app.post('/api/signup', async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: "Name, email, and password are required." });
-  }
+// POST create new clients
+app.post("/api/clients", async (req, res) => {
+  const { name, adress, email, phone, cliType } = req.body;
 
   try {
     const pool = await getConnection();
-
-    // Check if email already exists
-    const existingUser = await pool
-      .request()
-      .input("email", email)
-      .query("SELECT email FROM utilizatori WHERE email = @email");
-
-    if (existingUser.recordset.length > 0) {
-      await pool.close();
-      return res.status(400).json({ error: "Email already registered." });
-    }
-
-    // Insert new user (default role: client)
     await pool
       .request()
-      .input("name", name)
-      .input("email", email)
-      .input("parola", password)
-      .input("rol", "client")
-      .query("INSERT INTO Utilizatori (nume, email, parola, rol) VALUES (@name, @email, @parola, @rol)");
+      .input("NumeClient", name)
+      .input("TipClient", cliType)
+      .input("Telefon", phone)
+      .input("Email", email)
+      .input("Adresa", adress)
+      .query(`
+        INSERT INTO Clienti (NumeClient, TipClient, Telefon, Email, Adresa)
+        VALUES (@NumeClient, @TipClient, @Telefon, @Email, @Adresa)
+      `);
 
     await pool.close();
-    res.json({ message: "User created successfully" });
+    res.status(201).json({ message: "Client created successfully" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to create user" });
+    console.error("Error creating client:", error);
+    res.status(500).json({ error: "Failed to create client" });
+  }
+}); 
+
+// PUT update clients
+app.put("/api/clients/:id", async (req, res) => {
+  const { id } = req.params;
+   const { name, adress, email, phone, cliType } = req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("ClientID", id)
+      .input("NumeClient", name)
+      .input("TipClient", cliType)
+      .input("Telefon", phone)
+      .input("Email", email)
+      .input("Adresa", adress)
+      .query(`
+        UPDATE Clienti
+        SET 
+          NumeClient = @NumeClient,
+          TipClient = @TipClient,
+          Telefon = @Telefon,
+          Email = @Email,
+          Adresa = @Adresa
+        WHERE ClientID = @ClientID
+      `);
+
+    await pool.close();
+    res.json({ message: "Client updated successfully" });
+  } catch (error) {
+    console.error("Error updating client:", error);
+    res.status(500).json({ error: "Failed to update client" });
   }
 });
+
+// DELETE client
+app.delete("/api/clients/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool.request().input("ClientID", id).query("DELETE FROM Clienti WHERE ClientID = @ClientID");
+    await pool.close();
+    res.json({ message: "Client deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting client:", error);
+    res.status(500).json({ error: "Failed to delete client" });
+  }
+});
+
+
+// CATEGORIES
+
+// GET all Categorys
+app.get('/api/Categories', async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT 
+        CategorieID AS id, 
+        DenumireCategorie AS name, 
+        Descriere AS description
+      FROM Categorii
+    `);
+    res.json(result.recordset);
+    await pool.close();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
+
+// POST create new Categorys
+app.post("/api/categories", async (req, res) => {
+  const { name, description } = req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("DenumireCategorie", name)
+      .input("Descriere", description)
+      .query(`
+        INSERT INTO Categorii (DenumireCategorie, Descriere)
+        VALUES (@DenumireCategorie, @Descriere)
+      `);
+
+    await pool.close();
+    res.status(201).json({ message: "Category created successfully" });
+  } catch (error) {
+    console.error("Error creating Category:", error);
+    res.status(500).json({ error: "Failed to create Category" });
+  }
+}); 
+
+// PUT update categories
+app.put("/api/categories/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, description } = req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("CategorieID", id)
+      .input("DenumireCategorie", name)
+      .input("Descriere", description)
+      .query(`
+        UPDATE Categorii
+        SET 
+          DenumireCategorie = @DenumireCategorie,
+          Descriere = @Descriere
+        WHERE CategorieID = @CategorieID
+      `);
+
+    await pool.close();
+    res.json({ message: "Category updated successfully" });
+  } catch (error) {
+    console.error("Error updating Category:", error);
+    res.status(500).json({ error: "Failed to update Category" });
+  }
+});
+
+// DELETE category
+app.delete("/api/categories/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool.request().input("CategorieID", id).query("DELETE FROM Categorii WHERE CategorieID = @CategorieID");
+    await pool.close();
+    res.json({ message: "Category deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    res.status(500).json({ error: "Failed to delete category" });
+  }
+});
+
 
 
 app.listen(PORT, () => {
