@@ -821,6 +821,193 @@ app.delete("/api/events/:id", async (req, res) => {
   }
 });
 
+
+app.get("/api/participations", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT 
+        p.ModelID AS modelId,
+        p.EvenimentID AS eventId,
+        p.Rol AS role,
+        p.Plata AS payment
+      FROM Participari p
+    `);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch participations" });
+  }
+});
+
+app.post("/api/participations", async (req, res) => {
+  const { modelId, eventId, role, payment } = req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input("modelId", modelId)
+      .input("eventId", eventId)
+      .input("role", role)
+      .input("payment", payment)
+      .query(`
+        INSERT INTO Participari (ModelID, EvenimentID, Rol, Plata)
+        VALUES (@modelId, @eventId, @role, @payment)
+      `);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to insert participation" });
+  }
+});
+
+app.put("/api/participations/:modelId/:eventId", async (req, res) => {
+  const { modelId, eventId } = req.params;
+  const { role, payment } = req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input("modelId", modelId)
+      .input("eventId", eventId)
+      .input("role", role)
+      .input("payment", payment)
+      .query(`
+        UPDATE Participari
+        SET Rol = @role, Plata = @payment
+        WHERE ModelID = @modelId AND EvenimentID = @eventId
+      `);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update participation" });
+  }
+});
+
+app.delete("/api/participations/:modelId/:eventId", async (req, res) => {
+  const { modelId, eventId } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool.request()
+      .input("modelId", modelId)
+      .input("eventId", eventId)
+      .query(`
+        DELETE FROM Participari
+        WHERE ModelID = @modelId AND EvenimentID = @eventId
+      `);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete participation" });
+  }
+});
+
+
+// USERS
+
+// GET all users
+app.get("/api/users", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT 
+        UtilizatorID AS id,
+        Nume AS name,
+        Email AS email,
+        Parola AS password, 
+        Rol AS role 
+      FROM Utilizatori
+    `);
+    res.json(result.recordset);
+    await pool.close();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+// POST create new user
+app.post("/api/users", async (req, res) => {
+  const { name, email, password, role} =
+    req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("Nume", name)
+      .input("Email", email)
+      .input("Parola", password)
+      .input("Rol", role)
+      .query(`
+        INSERT INTO Utilizatori (Nume, Email, Parola, Rol)
+        VALUES (@Nume, @Email, @Parola, @Rol)
+      `);
+
+    await pool.close();
+    res.status(201).json({ message: "User created successfully" });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+// PUT update users
+app.put("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
+   const { name, email, password, role} =
+    req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("UtilizatorID", id)
+      .input("Nume", name)
+      .input("Email", email)
+      .input("Parola", password)
+      .input("Rol", role)
+      .query(`
+        UPDATE Utilizatori
+        SET
+          Nume = @Nume,
+          Email = @Email,
+          Parola = @Parola,
+          Rol = @Rol
+        WHERE UtilizatorID = @UtilizatorID
+      `);
+
+    await pool.close();
+    res.json({ message: "User updated successfully" });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Failed to update user" });
+  }
+});
+
+// DELETE users
+app.delete("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("UtilizatorID", id)
+      .query("DELETE FROM Utilizatori WHERE UtilizatorID = @UtilizatorID");
+    await pool.close();
+    res.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

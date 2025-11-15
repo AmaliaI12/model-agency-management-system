@@ -6,6 +6,8 @@ import ClientsTable from '../components/admin/ClientsTable';
 import CategoriesTable from '../components/admin/CategoriesTable';
 import ContractsTable from '../components/admin/ContractsTable';
 import EventsTable from '../components/admin/EventsTable';
+import ParticipationsTable from '../components/admin/ParticipationTable';
+import UsersTable from '../components/admin/UsersTable';
 
 export default function AdminDashboard() {
   return (
@@ -20,6 +22,8 @@ export default function AdminDashboard() {
           <li><a href="#categories">Categories</a></li>
           <li><a href="#contracts">Contracts</a></li>
           <li><a href="#events">Events</a></li>
+          <li><a href="#participations">Participations</a></li>
+          <li><a href="#users">Users</a></li>
         </ul>
       </nav>
 
@@ -57,6 +61,15 @@ export default function AdminDashboard() {
         <section id="events">
           <h3>Manage Events</h3>
           <EventsTable />
+        </section>
+
+        <section id="participations">
+          <h3>Manage Participations</h3>
+          <ParticipationsTable />
+        </section>
+        <section id="users">
+          <h3>Manage Users</h3>
+          <UsersTable />
         </section>
 
       </main>

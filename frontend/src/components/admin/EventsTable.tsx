@@ -129,10 +129,10 @@ const EventsTable: React.FC = () => {
                 </tr>
             </thead>
             <tbody>
-                {events.map((category) =>
-                    editing?.id === category.id ? (
-                        <tr key={category.id}>
-                            <td>{category.id}</td>
+                {events.map((event) =>
+                    editing?.id === event.id ? (
+                        <tr key={event.id}>
+                            <td>{event.id}</td>
                             <td><input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></td>
                             <td><input value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></td>
                             <td><input value={editing.locationId} onChange={(e) => setEditing({ ...editing, locationId: Number(e.target.value) })} /></td>
@@ -158,18 +158,18 @@ const EventsTable: React.FC = () => {
                             </td>
                         </tr>
                     ) : (
-                        <tr key={category.id}>
-                            <td>{category.id}</td>
-                            <td>{category.name}</td>
-                            <td>{category.date.slice(0, 10)}</td>
-                            <td>{category.locationId}</td>
-                            <td>{category.clientId}</td>
-                            <td>{category.buget}</td>
-                            <td>{category.description}</td>
-                            <td>{category.status}</td>
+                        <tr key={event.id}>
+                            <td>{event.id}</td>
+                            <td>{event.name}</td>
+                            <td>{event.date.slice(0, 10)}</td>
+                            <td>{event.locationId}</td>
+                            <td>{event.clientId}</td>
+                            <td>{event.buget}</td>
+                            <td>{event.description}</td>
+                            <td>{event.status}</td>
                             <td>
-                                <button onClick={() => setEditing(category)}>Edit</button>
-                                <button onClick={() => handleDelete(category.id)}>Delete</button>
+                                <button onClick={() => setEditing(event)}>Edit</button>
+                                <button onClick={() => handleDelete(event.id)}>Delete</button>
                             </td>
                         </tr>
                     )
