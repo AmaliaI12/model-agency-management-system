@@ -1,7 +1,7 @@
 // server.ts
 import express from "express";
 import cors from "cors";
-import { getConnection } from './database.ts';
+import { getConnection } from "./database.ts";
 
 const app = express();
 const PORT = 5000;
@@ -10,12 +10,12 @@ app.use(cors());
 app.use(express.json());
 
 // Test route
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Hello!' });
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello!" });
 });
 
 // Login route
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -28,13 +28,19 @@ app.post('/api/login', async (req, res) => {
       .request()
       .input("email", email)
       .input("parola", password)
-      .query("SELECT email, rol FROM utilizatori WHERE email = @email AND parola = @parola");
+      .query(
+        "SELECT email, rol FROM utilizatori WHERE email = @email AND parola = @parola"
+      );
 
     await pool.close();
 
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
-      res.json({ message: "Login successful", email: user.email, rol: user.rol });
+      res.json({
+        message: "Login successful",
+        email: user.email,
+        rol: user.rol,
+      });
     } else {
       res.status(401).json({ error: "Invalid email or password" });
     }
@@ -44,12 +50,13 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-
-app.post('/api/signup', async (req, res) => {
+app.post("/api/signup", async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
-    return res.status(400).json({ error: "Name, email, and password are required." });
+    return res
+      .status(400)
+      .json({ error: "Name, email, and password are required." });
   }
 
   try {
@@ -73,7 +80,9 @@ app.post('/api/signup', async (req, res) => {
       .input("email", email)
       .input("parola", password)
       .input("rol", "client")
-      .query("INSERT INTO Utilizatori (nume, email, parola, rol) VALUES (@name, @email, @parola, @rol)");
+      .query(
+        "INSERT INTO Utilizatori (nume, email, parola, rol) VALUES (@name, @email, @parola, @rol)"
+      );
 
     await pool.close();
     res.json({ message: "User created successfully" });
@@ -84,7 +93,7 @@ app.post('/api/signup', async (req, res) => {
 });
 
 // AGENTII
-app.get('/api/agentii', async (req, res) => {
+app.get("/api/agentii", async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
@@ -104,7 +113,7 @@ app.get('/api/agentii', async (req, res) => {
   }
 });
 
-app.post('/api/agentii', async (req, res) => {
+app.post("/api/agentii", async (req, res) => {
   const { name, adresa, email, telefon } = req.body;
   if (!name || !adresa || !email) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -117,8 +126,7 @@ app.post('/api/agentii', async (req, res) => {
       .input("NumeAgentie", name)
       .input("Adresa", adresa)
       .input("Email", email)
-      .input("Telefon", telefon || "")
-      .query(`
+      .input("Telefon", telefon || "").query(`
         INSERT INTO Agentii (NumeAgentie, Adresa, Email, Telefon)
         OUTPUT INSERTED.AgentieID AS id, INSERTED.NumeAgentie AS name, INSERTED.Adresa AS adresa, INSERTED.Email AS email, INSERTED.Telefon AS telefon
         VALUES (@NumeAgentie, @Adresa, @Email, @Telefon)
@@ -132,7 +140,7 @@ app.post('/api/agentii', async (req, res) => {
   }
 });
 
-app.put('/api/agentii/:id', async (req, res) => {
+app.put("/api/agentii/:id", async (req, res) => {
   const { id } = req.params;
   const { name, adresa, email, telefon } = req.body;
 
@@ -144,8 +152,7 @@ app.put('/api/agentii/:id', async (req, res) => {
       .input("NumeAgentie", name)
       .input("Adresa", adresa)
       .input("Email", email)
-      .input("Telefon", telefon)
-      .query(`
+      .input("Telefon", telefon).query(`
         UPDATE Agentii
         SET NumeAgentie=@NumeAgentie, Adresa=@Adresa, Email=@Email, Telefon=@Telefon
         WHERE AgentieID=@AgentieID
@@ -159,11 +166,14 @@ app.put('/api/agentii/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/agentii/:id', async (req, res) => {
+app.delete("/api/agentii/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const pool = await getConnection();
-    await pool.request().input("AgentieID", id).query("DELETE FROM Agentii WHERE AgentieID = @AgentieID");
+    await pool
+      .request()
+      .input("AgentieID", id)
+      .query("DELETE FROM Agentii WHERE AgentieID = @AgentieID");
     await pool.close();
     res.json({ message: "Agency deleted successfully" });
   } catch (error) {
@@ -172,11 +182,10 @@ app.delete('/api/agentii/:id', async (req, res) => {
   }
 });
 
-
 // MODELE
 
 // GET all models
-app.get('/api/modele', async (req, res) => {
+app.get("/api/modele", async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
@@ -203,7 +212,16 @@ app.get('/api/modele', async (req, res) => {
 
 // POST create new model
 app.post("/api/modele", async (req, res) => {
-  const { firstName, lastName, age, height, weight, agencyId, categoryId, gender } = req.body;
+  const {
+    firstName,
+    lastName,
+    age,
+    height,
+    weight,
+    agencyId,
+    categoryId,
+    gender,
+  } = req.body;
 
   try {
     const pool = await getConnection();
@@ -217,8 +235,7 @@ app.post("/api/modele", async (req, res) => {
       .input("AgentieID", agencyId)
       .input("DataInregistrare", "01/10/2025")
       .input("CategorieID", categoryId)
-      .input("Sex", gender)
-      .query(`
+      .input("Sex", gender).query(`
         INSERT INTO Modele (NumeModel, PrenumeModel, Varsta, Inaltime, Greutate, AgentieID, DataInregistrare, CategorieID, Sex)
         VALUES (@NumeModel, @PrenumeModel, @Varsta, @Inaltime, @Greutate, @AgentieID, @DataInregistrare, @CategorieID, @Sex)
       `);
@@ -234,7 +251,17 @@ app.post("/api/modele", async (req, res) => {
 // PUT update model
 app.put("/api/modele/:id", async (req, res) => {
   const { id } = req.params;
-  const { firstName, lastName, age, height, weight, agencyId, date, categoryId, gender } = req.body;
+  const {
+    firstName,
+    lastName,
+    age,
+    height,
+    weight,
+    agencyId,
+    date,
+    categoryId,
+    gender,
+  } = req.body;
 
   try {
     const pool = await getConnection();
@@ -249,8 +276,7 @@ app.put("/api/modele/:id", async (req, res) => {
       .input("AgentieID", agencyId)
       .input("DataInregistrare", date)
       .input("CategorieID", categoryId)
-      .input("Sex", gender)
-      .query(`
+      .input("Sex", gender).query(`
         UPDATE Modele
         SET 
           PrenumeModel = @PrenumeModel,
@@ -279,7 +305,10 @@ app.delete("/api/modele/:id", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request().input("ModelID", id).query("DELETE FROM Modele WHERE ModelID = @ModelID");
+    await pool
+      .request()
+      .input("ModelID", id)
+      .query("DELETE FROM Modele WHERE ModelID = @ModelID");
     await pool.close();
     res.json({ message: "Model deleted successfully" });
   } catch (error) {
@@ -288,11 +317,10 @@ app.delete("/api/modele/:id", async (req, res) => {
   }
 });
 
-
 // LOCATIONS
 
 // GET all locations
-app.get('/api/locations', async (req, res) => {
+app.get("/api/locations", async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
@@ -325,8 +353,7 @@ app.post("/api/locations", async (req, res) => {
       .input("Adresa", adresa)
       .input("Oras", city)
       .input("Capacitate", capacity)
-      .input("TelefonContact", phone)
-      .query(`
+      .input("TelefonContact", phone).query(`
         INSERT INTO Locatii (NumeLocatie, Adresa, Oras, Capacitate, TelefonContact)
         VALUES (@NumeLocatie, @Adresa, @Oras, @Capacitate, @TelefonContact)
       `);
@@ -342,7 +369,7 @@ app.post("/api/locations", async (req, res) => {
 // PUT update location
 app.put("/api/locations/:id", async (req, res) => {
   const { id } = req.params;
-   const { name, adresa, city, capacity, phone } = req.body;
+  const { name, adresa, city, capacity, phone } = req.body;
 
   try {
     const pool = await getConnection();
@@ -353,8 +380,7 @@ app.put("/api/locations/:id", async (req, res) => {
       .input("Adresa", adresa)
       .input("Oras", city)
       .input("Capacitate", capacity)
-      .input("TelefonContact", phone)
-      .query(`
+      .input("TelefonContact", phone).query(`
         UPDATE Locatii
         SET 
           NumeLocatie = @NumeLocatie,
@@ -379,7 +405,10 @@ app.delete("/api/locations/:id", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request().input("LocatieID", id).query("DELETE FROM Locatii WHERE LocatieID = @LocatieID");
+    await pool
+      .request()
+      .input("LocatieID", id)
+      .query("DELETE FROM Locatii WHERE LocatieID = @LocatieID");
     await pool.close();
     res.json({ message: "Location deleted successfully" });
   } catch (error) {
@@ -388,11 +417,10 @@ app.delete("/api/locations/:id", async (req, res) => {
   }
 });
 
-
 // CLIENTS
 
 // GET all clients
-app.get('/api/clients', async (req, res) => {
+app.get("/api/clients", async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
@@ -425,8 +453,7 @@ app.post("/api/clients", async (req, res) => {
       .input("TipClient", cliType)
       .input("Telefon", phone)
       .input("Email", email)
-      .input("Adresa", adress)
-      .query(`
+      .input("Adresa", adress).query(`
         INSERT INTO Clienti (NumeClient, TipClient, Telefon, Email, Adresa)
         VALUES (@NumeClient, @TipClient, @Telefon, @Email, @Adresa)
       `);
@@ -437,12 +464,12 @@ app.post("/api/clients", async (req, res) => {
     console.error("Error creating client:", error);
     res.status(500).json({ error: "Failed to create client" });
   }
-}); 
+});
 
 // PUT update clients
 app.put("/api/clients/:id", async (req, res) => {
   const { id } = req.params;
-   const { name, adress, email, phone, cliType } = req.body;
+  const { name, adress, email, phone, cliType } = req.body;
 
   try {
     const pool = await getConnection();
@@ -453,8 +480,7 @@ app.put("/api/clients/:id", async (req, res) => {
       .input("TipClient", cliType)
       .input("Telefon", phone)
       .input("Email", email)
-      .input("Adresa", adress)
-      .query(`
+      .input("Adresa", adress).query(`
         UPDATE Clienti
         SET 
           NumeClient = @NumeClient,
@@ -479,7 +505,10 @@ app.delete("/api/clients/:id", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request().input("ClientID", id).query("DELETE FROM Clienti WHERE ClientID = @ClientID");
+    await pool
+      .request()
+      .input("ClientID", id)
+      .query("DELETE FROM Clienti WHERE ClientID = @ClientID");
     await pool.close();
     res.json({ message: "Client deleted successfully" });
   } catch (error) {
@@ -488,11 +517,10 @@ app.delete("/api/clients/:id", async (req, res) => {
   }
 });
 
-
 // CATEGORIES
 
 // GET all Categorys
-app.get('/api/Categories', async (req, res) => {
+app.get("/api/Categories", async (req, res) => {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
@@ -519,8 +547,7 @@ app.post("/api/categories", async (req, res) => {
     await pool
       .request()
       .input("DenumireCategorie", name)
-      .input("Descriere", description)
-      .query(`
+      .input("Descriere", description).query(`
         INSERT INTO Categorii (DenumireCategorie, Descriere)
         VALUES (@DenumireCategorie, @Descriere)
       `);
@@ -531,7 +558,7 @@ app.post("/api/categories", async (req, res) => {
     console.error("Error creating Category:", error);
     res.status(500).json({ error: "Failed to create Category" });
   }
-}); 
+});
 
 // PUT update categories
 app.put("/api/categories/:id", async (req, res) => {
@@ -544,8 +571,7 @@ app.put("/api/categories/:id", async (req, res) => {
       .request()
       .input("CategorieID", id)
       .input("DenumireCategorie", name)
-      .input("Descriere", description)
-      .query(`
+      .input("Descriere", description).query(`
         UPDATE Categorii
         SET 
           DenumireCategorie = @DenumireCategorie,
@@ -567,7 +593,10 @@ app.delete("/api/categories/:id", async (req, res) => {
 
   try {
     const pool = await getConnection();
-    await pool.request().input("CategorieID", id).query("DELETE FROM Categorii WHERE CategorieID = @CategorieID");
+    await pool
+      .request()
+      .input("CategorieID", id)
+      .query("DELETE FROM Categorii WHERE CategorieID = @CategorieID");
     await pool.close();
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
@@ -576,7 +605,221 @@ app.delete("/api/categories/:id", async (req, res) => {
   }
 });
 
+// CONTRACTS
 
+// GET all contracts
+app.get("/api/contracts", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT 
+        ContractID AS id, 
+        ModelID AS modelId, 
+        ClientID AS clientId, 
+        DataInceput AS startDate,
+        Status AS status,
+        TipContract AS contractType,
+        Valoare AS payment
+      FROM Contracte
+    `);
+    res.json(result.recordset);
+    await pool.close();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch contracts" });
+  }
+});
+
+// POST create new contract
+app.post("/api/contracts", async (req, res) => {
+  const { modelId, clientId, startDate, status, contractType, payment } =
+    req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("ModelID", modelId)
+      .input("ClientID", clientId)
+      .input("DataInceput", startDate)
+      .input("Status", status)
+      .input("TipContract", contractType)
+      .input("Valoare", payment).query(`
+        INSERT INTO Contracte (ModelID, ClientID, DataInceput, Status, TipContract, Valoare)
+        VALUES (@ModelID, @ClientID, @DataInceput, @Status, @TipContract, @Valoare)
+      `);
+
+    await pool.close();
+    res.status(201).json({ message: "Contract created successfully" });
+  } catch (error) {
+    console.error("Error creating contract:", error);
+    res.status(500).json({ error: "Failed to create contract" });
+  }
+});
+
+// PUT update contracts
+app.put("/api/contracts/:id", async (req, res) => {
+  const { id } = req.params;
+  const { modelId, clientId, startDate, status, contractType, payment } =
+    req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("ContractID", id)
+      .input("ModelID", modelId)
+      .input("ClientID", clientId)
+      .input("DataInceput", startDate)
+      .input("Status", status)
+      .input("TipContract", contractType)
+      .input("Valoare", payment).query(`
+        UPDATE Contracte
+        SET 
+          ModelID = @ModelID,
+          ClientID = @ClientID,
+          DataInceput = @DataInceput,
+          Status = @Status,
+          TipContract = @TipContract,
+          Valoare = @Valoare
+        WHERE ContractID = @ContractID
+      `);
+
+    await pool.close();
+    res.json({ message: "Contract updated successfully" });
+  } catch (error) {
+    console.error("Error updating contrac:", error);
+    res.status(500).json({ error: "Failed to update contract" });
+  }
+});
+
+// DELETE contracts
+app.delete("/api/contracts/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("ContractID", id)
+      .query("DELETE FROM Contracte WHERE ContractID = @ContractID");
+    await pool.close();
+    res.json({ message: "Contract deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting Contract:", error);
+    res.status(500).json({ error: "Failed to delete Contract" });
+  }
+});
+
+// EVENTS
+
+// GET all events
+app.get("/api/events", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query(`
+      SELECT 
+        EvenimentID AS id,
+        Nume AS name,
+        DataEveniment AS date,
+        LocatieID AS locationId, 
+        ClientID AS clientId, 
+        Buget AS buget,
+        Descriere AS description,
+        Status AS status
+      FROM Evenimente
+    `);
+    res.json(result.recordset);
+    await pool.close();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
+// POST create new event
+app.post("/api/events", async (req, res) => {
+  const { name, date, locationId, clientId, buget, description, status } =
+    req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("Nume", name)
+      .input("DataEveniment", date)
+      .input("LocatieID", locationId)
+      .input("ClientID", clientId)
+      .input("Buget", buget)
+      .input("Descriere", description)
+      .input("Status", status).query(`
+        INSERT INTO Evenimente (Nume, DataEveniment, LocatieID, ClientID, Buget, Descriere, Status)
+        VALUES (@Nume, @DataEveniment, @LocatieID, @ClientID, @Buget, @Descriere, @Status)
+      `);
+
+    await pool.close();
+    res.status(201).json({ message: "Event created successfully" });
+  } catch (error) {
+    console.error("Error creating event:", error);
+    res.status(500).json({ error: "Failed to create event" });
+  }
+});
+
+// PUT update events
+app.put("/api/events/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, date, locationId, clientId, buget, description, status } =
+    req.body;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("EvenimentID", id)
+      .input("Nume", name)
+      .input("DataEveniment", date)
+      .input("LocatieID", locationId)
+      .input("ClientID", clientId)
+      .input("Buget", buget)
+      .input("Descriere", description)
+      .input("Status", status).query(`
+        UPDATE Evenimente
+        SET
+          Nume = @Nume,
+          DataEveniment = @DataEveniment,
+          LocatieID = @LocatieID,
+          ClientID = @ClientID,
+          Buget = @Buget,
+          Descriere = @Descriere,
+          Status = @Status
+        WHERE EvenimentID = @EvenimentID
+      `);
+
+    await pool.close();
+    res.json({ message: "Event updated successfully" });
+  } catch (error) {
+    console.error("Error updating event:", error);
+    res.status(500).json({ error: "Failed to update event" });
+  }
+});
+
+// DELETE events
+app.delete("/api/events/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pool = await getConnection();
+    await pool
+      .request()
+      .input("EvenimentID", id)
+      .query("DELETE FROM Evenimente WHERE EvenimentID = @EvenimentID");
+    await pool.close();
+    res.json({ message: "Event deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    res.status(500).json({ error: "Failed to delete event" });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
