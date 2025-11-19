@@ -8,9 +8,9 @@ interface Model {
   age: number;
   height: number;
   weight: number;
-  agencyId: number;
+  agencyName: string;
   date: string;
-  categoryId: number;
+  categoryName: string;
   gender: string;
 }
 
@@ -109,19 +109,19 @@ const ModelsTable: React.FC = () => {
           }
         />
         <input
-          type="number"
-          placeholder="Agency ID"
-          value={newModel.agencyId ?? ""}
+          type="text"
+          placeholder="Agency"
+          value={newModel.agencyName ?? ""}
           onChange={(e) =>
-            setNewModel({ ...newModel, agencyId: Number(e.target.value) })
+            setNewModel({ ...newModel, agencyName: e.target.value })
           }
         />
         <input
-          type="number"
-          placeholder="Category ID"
-          value={newModel.categoryId ?? ""}
+          type="text"
+          placeholder="Category"
+          value={newModel.categoryName ?? ""}
           onChange={(e) =>
-            setNewModel({ ...newModel, categoryId: Number(e.target.value) })
+            setNewModel({ ...newModel, categoryName: e.target.value })
           }
         />
         <select
@@ -145,9 +145,9 @@ const ModelsTable: React.FC = () => {
             <th>Age</th>
             <th>Height</th>
             <th>Weight</th>
-            <th>Agency ID</th>
+            <th>Agency</th>
             <th className={editing ? "hide-column" : ""}>Date</th>
-            <th>Category ID</th>
+            <th>Category</th>
             <th>Gender</th>
             <th>Actions</th>
           </tr>
@@ -202,24 +202,24 @@ const ModelsTable: React.FC = () => {
                 </td>
                 <td>
                   <input
-                    type="number"
-                    value={editing.agencyId}
+                    type="text"
+                    value={editing.agencyName}
                     onChange={(e) =>
                       setEditing({
                         ...editing,
-                        agencyId: Number(e.target.value),
+                        agencyName: e.target.value,
                       })
                     }
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
-                    value={editing.categoryId}
+                    type="text"
+                    value={editing.categoryName}
                     onChange={(e) =>
                       setEditing({
                         ...editing,
-                        categoryId: Number(e.target.value),
+                        categoryName: e.target.value,
                       })
                     }
                   />
@@ -248,12 +248,12 @@ const ModelsTable: React.FC = () => {
                 <td>{model.age}</td>
                 <td>{model.height}</td>
                 <td>{model.weight}</td>
-                <td>{model.agencyId}</td>
+                <td>{model.agencyName}</td>
                 <td className={editing ? "hide-column" : ""}>
                   {model.date?.slice(0, 10)}
                 </td>
 
-                <td>{model.categoryId}</td>
+                <td>{model.categoryName}</td>
                 <td>{model.gender}</td>
                 <td>
                   <button onClick={() => setEditing(model)}>Edit</button>

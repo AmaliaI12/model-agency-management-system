@@ -5,8 +5,8 @@ interface Event {
     id: number;
     name: string;
     date: string;
-    locationId: number;
-    clientId: number;
+    locationName: string;
+    clientName: string;
     buget: number;
     description: string;
     status: string;
@@ -78,16 +78,16 @@ const EventsTable: React.FC = () => {
                     onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
                 />
                 <input
-                    type="number"
-                    placeholder="Location ID"
-                    value={newEvent.locationId || ""}
-                    onChange={(e) => setNewEvent({ ...newEvent, locationId: Number(e.target.value) })}
+                    type="text"
+                    placeholder="Location"
+                    value={newEvent.locationName || ""}
+                    onChange={(e) => setNewEvent({ ...newEvent, locationName: e.target.value })}
                 />
                 <input
-                    type="number"
-                    placeholder="Client ID"
-                    value={newEvent.clientId || ""}
-                    onChange={(e) => setNewEvent({ ...newEvent, clientId: Number(e.target.value) })}
+                    type="text"
+                    placeholder="Client"
+                    value={newEvent.clientName || ""}
+                    onChange={(e) => setNewEvent({ ...newEvent, clientName: e.target.value })}
                 />
                 <input
                     type="number"
@@ -120,8 +120,8 @@ const EventsTable: React.FC = () => {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Event Date</th>
-                    <th>Location ID</th>
-                    <th>Client ID</th>
+                    <th>Location</th>
+                    <th>Client</th>
                     <th>Buget</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -135,8 +135,8 @@ const EventsTable: React.FC = () => {
                             <td>{event.id}</td>
                             <td><input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></td>
                             <td><input value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })} /></td>
-                            <td><input value={editing.locationId} onChange={(e) => setEditing({ ...editing, locationId: Number(e.target.value) })} /></td>
-                            <td><input value={editing.clientId} onChange={(e) => setEditing({ ...editing, clientId: Number(e.target.value) })} /></td>
+                            <td><input value={editing.locationName} onChange={(e) => setEditing({ ...editing, locationName: e.target.value })} /></td>
+                            <td><input value={editing.clientName} onChange={(e) => setEditing({ ...editing, clientName: e.target.value })} /></td>
                             <td><input value={editing.buget} onChange={(e) => setEditing({ ...editing, buget: Number(e.target.value) })} /></td>
                             <td><input value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></td>
                             <td>
@@ -162,8 +162,8 @@ const EventsTable: React.FC = () => {
                             <td>{event.id}</td>
                             <td>{event.name}</td>
                             <td>{event.date.slice(0, 10)}</td>
-                            <td>{event.locationId}</td>
-                            <td>{event.clientId}</td>
+                            <td>{event.locationName}</td>
+                            <td>{event.clientName}</td>
                             <td>{event.buget}</td>
                             <td>{event.description}</td>
                             <td>{event.status}</td>

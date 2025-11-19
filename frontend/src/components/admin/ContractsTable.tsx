@@ -3,8 +3,8 @@ import "../../styles/AdminDashboard.css";
 
 interface Contract {
     id: number;
-    agencyID: number;
-    clientId: number;
+    agencyName: string;
+    clientName: string;
     startDate: string;
     status: string;
     contractType: string;
@@ -65,16 +65,16 @@ const ContractsTable: React.FC = () => {
             {/* Add form */}
             <form onSubmit={handleAdd} className="admin-form">
                 <input
-                    type="number"
-                    placeholder="Agency ID"
-                    value={newContract.agencyID || ""}
-                    onChange={(e) => setNewContract({ ...newContract, agencyID: Number(e.target.value) })}
+                    type="text"
+                    placeholder="Agency"
+                    value={newContract.agencyName || ""}
+                    onChange={(e) => setNewContract({ ...newContract, agencyName: e.target.value })}
                 />
                 <input
-                    type="number"
-                    placeholder="Client ID"
-                    value={newContract.clientId || ""}
-                    onChange={(e) => setNewContract({ ...newContract, clientId: Number(e.target.value) })}
+                    type="text"
+                    placeholder="Client"
+                    value={newContract.clientName || ""}
+                    onChange={(e) => setNewContract({ ...newContract, clientName: e.target.value })}
                 />
                 <input
                     type="text"
@@ -121,8 +121,8 @@ const ContractsTable: React.FC = () => {
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Agency ID</th>
-                    <th>Client ID</th>
+                    <th>Agency</th>
+                    <th>Client</th>
                     <th>Start Date</th>
                     <th>Status</th>
                     <th>Contract Type</th>
@@ -135,8 +135,8 @@ const ContractsTable: React.FC = () => {
                     editing?.id === contract.id ? (
                         <tr key={contract.id}>
                             <td>{contract.id}</td>
-                            <td><input value={editing.agencyID} onChange={(e) => setEditing({ ...editing, agencyID: Number(e.target.value) })} /></td>
-                            <td><input value={editing.clientId} onChange={(e) => setEditing({ ...editing, clientId: Number(e.target.value) })} /></td>
+                            <td><input value={editing.agencyName} onChange={(e) => setEditing({ ...editing, agencyName: e.target.value })} /></td>
+                            <td><input value={editing.clientName} onChange={(e) => setEditing({ ...editing, clientName: e.target.value })} /></td>
                             <td><input value={editing.startDate} onChange={(e) => setEditing({ ...editing, startDate: e.target.value })} /></td>
                             <td>
                                 <select
@@ -155,7 +155,7 @@ const ContractsTable: React.FC = () => {
                                 <select
                                     value={editing.contractType}
                                     onChange={(e) =>
-                                        setEditing({ ...editing, status: e.target.value })
+                                        setEditing({ ...editing, contractType: e.target.value })
                                     }
                                 >
                                     <option value="Promovare">Promo</option>
@@ -173,8 +173,8 @@ const ContractsTable: React.FC = () => {
                     ) : (
                         <tr key={contract.id}>
                             <td>{contract.id}</td>
-                            <td>{contract.agencyID}</td>
-                            <td>{contract.clientId}</td>
+                            <td>{contract.agencyName}</td>
+                            <td>{contract.clientName}</td>
                             <td>{contract.startDate.slice(0, 10)}</td>
                             <td>{contract.status}</td>
                             <td>{contract.contractType}</td>

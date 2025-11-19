@@ -2,6 +2,10 @@
 import express from "express";
 import cors from "cors";
 import { getConnection } from "./database.ts";
+import sql from "mssql";
+import type { IRecordSet } from "mssql";
+
+
 
 const app = express();
 const PORT = 5000;
@@ -192,17 +196,21 @@ app.get("/api/modele", async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().query(`
       SELECT 
-        ModelID AS id, 
-        NumeModel AS lastName, 
-        PrenumeModel AS firstName, 
-        Varsta AS age, 
-        Inaltime AS height,
-        Greutate AS weight,
-        AgentieID AS agencyId,
-        DataInregistrare AS date,
-        CategorieID AS categoryId,
-        Sex AS gender
-      FROM Modele
+        m.ModelID AS id, 
+        m.NumeModel AS lastName, 
+        m.PrenumeModel AS firstName, 
+        m.Varsta AS age, 
+        m.Inaltime AS height,
+        m.Greutate AS weight,
+        m.AgentieID AS agencyId,
+        a.NumeAgentie AS agencyName,
+        m.DataInregistrare AS date,
+        m.CategorieID AS categoryId,
+        c.DenumireCategorie AS categoryName,
+        m.Sex AS gender
+      FROM Modele m
+      LEFT JOIN Agentii a ON m.AgentieID = a.AgentieID
+      LEFT JOIN Categorii c ON m.CategorieID = c.CategorieID
     `);
     res.json(result.recordset);
     await pool.close();
@@ -220,26 +228,54 @@ app.post("/api/modele", async (req, res) => {
     age,
     height,
     weight,
-    agencyId,
-    categoryId,
+    agencyName,
+    categoryName,
     gender,
   } = req.body;
 
   try {
     const pool = await getConnection();
+    const agencyResult = await pool.request().input("AgencyName", agencyName)
+      .query(`
+        SELECT AgentieID 
+        FROM Agentii 
+        WHERE NumeAgentie = @AgencyName
+      `);
+
+    if (agencyResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Agency not found" });
+    }
+
+    const agencyId = agencyResult.recordset[0].AgentieID;
+
+    const categoryResult = await pool
+      .request()
+      .input("CategoryName", categoryName).query(`
+        SELECT CategorieID 
+        FROM Categorii 
+        WHERE DenumireCategorie = @CategoryName
+      `);
+
+    if (categoryResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Category not found" });
+    }
+
+    const categoryId = categoryResult.recordset[0].CategorieID;
+
     await pool
       .request()
-      .input("PrenumeModel", firstName)
       .input("NumeModel", lastName)
+      .input("PrenumeModel", firstName)
       .input("Varsta", age)
       .input("Inaltime", height)
       .input("Greutate", weight)
       .input("AgentieID", agencyId)
-      .input("DataInregistrare", "01/10/2025")
       .input("CategorieID", categoryId)
       .input("Sex", gender).query(`
-        INSERT INTO Modele (NumeModel, PrenumeModel, Varsta, Inaltime, Greutate, AgentieID, DataInregistrare, CategorieID, Sex)
-        VALUES (@NumeModel, @PrenumeModel, @Varsta, @Inaltime, @Greutate, @AgentieID, @DataInregistrare, @CategorieID, @Sex)
+        INSERT INTO Modele 
+        (NumeModel, PrenumeModel, Varsta, Inaltime, Greutate, AgentieID, DataInregistrare, CategorieID, Sex)
+        VALUES 
+        (@NumeModel, @PrenumeModel, @Varsta, @Inaltime, @Greutate, @AgentieID, GETDATE(), @CategorieID, @Sex)
       `);
 
     await pool.close();
@@ -259,30 +295,58 @@ app.put("/api/modele/:id", async (req, res) => {
     age,
     height,
     weight,
-    agencyId,
     date,
-    categoryId,
     gender,
+    agencyName,
+    categoryName,
   } = req.body;
 
   try {
     const pool = await getConnection();
+
+    const agencyResult = await pool.request().input("AgencyName", agencyName)
+      .query(`
+        SELECT AgentieID 
+        FROM Agentii 
+        WHERE NumeAgentie = @AgencyName
+      `);
+
+    if (agencyResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Agency not found" });
+    }
+
+    const agencyId = agencyResult.recordset[0].AgentieID;
+
+    const categoryResult = await pool
+      .request()
+      .input("CategoryName", categoryName).query(`
+        SELECT CategorieID 
+        FROM Categorii 
+        WHERE DenumireCategorie = @CategoryName
+      `);
+
+    if (categoryResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Category not found" });
+    }
+
+    const categoryId = categoryResult.recordset[0].CategorieID;
+
     await pool
       .request()
       .input("ModelID", id)
-      .input("PrenumeModel", firstName)
       .input("NumeModel", lastName)
+      .input("PrenumeModel", firstName)
       .input("Varsta", age)
       .input("Inaltime", height)
       .input("Greutate", weight)
-      .input("AgentieID", agencyId)
       .input("DataInregistrare", date)
+      .input("AgentieID", agencyId)
       .input("CategorieID", categoryId)
       .input("Sex", gender).query(`
         UPDATE Modele
         SET 
-          PrenumeModel = @PrenumeModel,
           NumeModel = @NumeModel,
+          PrenumeModel = @PrenumeModel,
           Varsta = @Varsta,
           Inaltime = @Inaltime,
           Greutate = @Greutate,
@@ -615,14 +679,16 @@ app.get("/api/contracts", async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().query(`
       SELECT 
-        ContractID AS id, 
-        AgentieID AS agencyId, 
-        ClientID AS clientId, 
-        DataInceput AS startDate,
-        Status AS status,
-        TipContract AS contractType,
-        Valoare AS payment
-      FROM Contracte
+        c.ContractID AS id, 
+        a.NumeAgentie AS agencyName, 
+        b.NumeClient AS clientName, 
+        c.DataInceput AS startDate,
+        c.Status AS status,
+        c.TipContract AS contractType,
+        c.Valoare AS payment
+      FROM Contracte c
+      LEFT JOIN Agentii a ON c.AgentieID = a.AgentieID
+      LEFT JOIN Clienti b ON c.ClientID = b.ClientID
     `);
     res.json(result.recordset);
     await pool.close();
@@ -634,11 +700,37 @@ app.get("/api/contracts", async (req, res) => {
 
 // POST create new contract
 app.post("/api/contracts", async (req, res) => {
-  const { agencyId, clientId, startDate, status, contractType, payment } =
+  const { agencyName, clientName, startDate, status, contractType, payment } =
     req.body;
 
   try {
     const pool = await getConnection();
+    const agencyResult = await pool.request().input("AgencyName", agencyName)
+      .query(`
+        SELECT AgentieID 
+        FROM Agentii 
+        WHERE NumeAgentie = @AgencyName
+      `);
+
+    if (agencyResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Agency not found" });
+    }
+
+    const agencyId = agencyResult.recordset[0].AgentieID;
+
+    const clientResult = await pool.request().input("ClientName", clientName)
+      .query(`
+        SELECT ClientID 
+        FROM Clienti 
+        WHERE NumeClient = @ClientName
+      `);
+
+    if (clientResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const clientId = clientResult.recordset[0].ClientID;
+
     await pool
       .request()
       .input("AgentieID", agencyId)
@@ -662,11 +754,38 @@ app.post("/api/contracts", async (req, res) => {
 // PUT update contracts
 app.put("/api/contracts/:id", async (req, res) => {
   const { id } = req.params;
-  const { agencyId, clientId, startDate, status, contractType, payment } =
+  const { agencyName, clientName, startDate, status, contractType, payment } =
     req.body;
 
   try {
     const pool = await getConnection();
+
+    const agencyResult = await pool.request().input("AgencyName", agencyName)
+      .query(`
+        SELECT AgentieID 
+        FROM Agentii 
+        WHERE NumeAgentie = @AgencyName
+      `);
+
+    if (agencyResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Agency not found" });
+    }
+
+    const agencyId = agencyResult.recordset[0].AgentieID;
+
+    const clientResult = await pool.request().input("ClientName", clientName)
+      .query(`
+        SELECT ClientID 
+        FROM Clienti 
+        WHERE NumeClient = @ClientName
+      `);
+
+    if (clientResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const clientId = clientResult.recordset[0].ClientID;
+
     await pool
       .request()
       .input("ContractID", id)
@@ -721,15 +840,17 @@ app.get("/api/events", async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().query(`
       SELECT 
-        EvenimentID AS id,
-        Nume AS name,
-        DataEveniment AS date,
-        LocatieID AS locationId, 
-        ClientID AS clientId, 
-        Buget AS buget,
-        Descriere AS description,
-        Status AS status
-      FROM Evenimente
+        e.EvenimentID AS id,
+        e.Nume AS name,
+        e.DataEveniment AS date,
+        l.NumeLocatie AS locationName, 
+        c.NumeClient AS clientName, 
+        e.Buget AS buget,
+        e.Descriere AS description,
+        e.Status AS status
+      FROM Evenimente e
+      LEFT JOIN Locatii l ON e.LocatieID = l.LocatieID
+      LEFT JOIN Clienti c ON e.ClientID = c.ClientID
     `);
     res.json(result.recordset);
     await pool.close();
@@ -741,11 +862,38 @@ app.get("/api/events", async (req, res) => {
 
 // POST create new event
 app.post("/api/events", async (req, res) => {
-  const { name, date, locationId, clientId, buget, description, status } =
+  const { name, date, locationName, clientName, buget, description, status } =
     req.body;
 
   try {
     const pool = await getConnection();
+    const locationResult = await pool
+      .request()
+      .input("LocationName", locationName).query(`
+        SELECT LocatieID 
+        FROM Locatii 
+        WHERE NumeLocatie = @LocationName
+      `);
+
+    if (locationResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Location not found" });
+    }
+
+    const locationId = locationResult.recordset[0].LocatieID;
+
+    const clientResult = await pool.request().input("ClientName", clientName)
+      .query(`
+        SELECT ClientID 
+        FROM Clienti 
+        WHERE NumeClient = @ClientName
+      `);
+
+    if (clientResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const clientId = clientResult.recordset[0].ClientID;
+
     await pool
       .request()
       .input("Nume", name)
@@ -770,11 +918,39 @@ app.post("/api/events", async (req, res) => {
 // PUT update events
 app.put("/api/events/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, date, locationId, clientId, buget, description, status } =
+  const { name, date, locationName, clientName, buget, description, status } =
     req.body;
 
   try {
     const pool = await getConnection();
+
+    const locationResult = await pool
+      .request()
+      .input("LocationName", locationName).query(`
+        SELECT LocatieID 
+        FROM Locatii 
+        WHERE NumeLocatie = @LocationName
+      `);
+
+    if (locationResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Location not found" });
+    }
+
+    const locationId = locationResult.recordset[0].LocatieID;
+
+    const clientResult = await pool.request().input("ClientName", clientName)
+      .query(`
+        SELECT ClientID 
+        FROM Clienti 
+        WHERE NumeClient = @ClientName
+      `);
+
+    if (clientResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const clientId = clientResult.recordset[0].ClientID;
+
     await pool
       .request()
       .input("EvenimentID", id)
@@ -792,6 +968,7 @@ app.put("/api/events/:id", async (req, res) => {
           LocatieID = @LocatieID,
           ClientID = @ClientID,
           Buget = @Buget,
+
           Descriere = @Descriere,
           Status = @Status
         WHERE EvenimentID = @EvenimentID
@@ -828,11 +1005,13 @@ app.get("/api/participations", async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().query(`
       SELECT 
-        p.ModelID AS modelId,
-        p.EvenimentID AS eventId,
+        m.NumeModel AS modelName,
+        e.Nume AS eventName,
         p.Rol AS role,
         p.Plata AS payment
       FROM Participari p
+      LEFT JOIN Modele m ON p.ModelID = m.ModelID
+      LEFT JOIN Evenimente e ON p.EvenimentID = e.EvenimentID
     `);
     res.json(result.recordset);
   } catch (err) {
@@ -842,10 +1021,39 @@ app.get("/api/participations", async (req, res) => {
 });
 
 app.post("/api/participations", async (req, res) => {
-  const { modelId, eventId, role, payment } = req.body;
+  const { modelName, eventName, role, payment } = req.body;
 
   try {
     const pool = await getConnection();
+
+    const modelResult = await pool.request().input("ModelName", modelName)
+      .query(`
+        SELECT ModelID
+        FROM Modele
+        WHERE NumeModel = @ModelName
+      `);
+
+    console.error("Model " + modelResult);
+
+    if (modelResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Model not found" });
+    }
+
+    const modelId = modelResult.recordset[0].ModelID;
+
+    const eventResult = await pool.request().input("EventName", eventName)
+      .query(`
+        SELECT EvenimentID 
+        FROM Evenimente 
+        WHERE Nume = @EventName
+      `);
+
+    if (eventResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const eventId = eventResult.recordset[0].EvenimentID;
+
     await pool
       .request()
       .input("modelId", modelId)
@@ -863,12 +1071,39 @@ app.post("/api/participations", async (req, res) => {
   }
 });
 
-app.put("/api/participations/:modelId/:eventId", async (req, res) => {
-  const { modelId, eventId } = req.params;
+app.put("/api/participations/:modelName/:eventName", async (req, res) => {
+  const { modelName, eventName } = req.params;
   const { role, payment } = req.body;
 
   try {
     const pool = await getConnection();
+
+    const modelResult = await pool.request().input("ModelName", modelName)
+      .query(`
+        SELECT ModelID 
+        FROM Modele
+        WHERE NumeModel = @ModelName
+      `);
+
+    if (modelResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Model not found" });
+    }
+
+    const modelId = modelResult.recordset[0].ModelID;
+
+    const eventResult = await pool.request().input("EventName", eventName)
+      .query(`
+        SELECT EvenimentID 
+        FROM Evenimente 
+        WHERE Nume = @EventName
+      `);
+
+    if (eventResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const eventId = eventResult.recordset[0].EvenimentID;
+
     await pool
       .request()
       .input("modelId", modelId)
@@ -887,11 +1122,37 @@ app.put("/api/participations/:modelId/:eventId", async (req, res) => {
   }
 });
 
-app.delete("/api/participations/:modelId/:eventId", async (req, res) => {
-  const { modelId, eventId } = req.params;
+app.delete("/api/participations/:modelName/:eventName", async (req, res) => {
+  const { modelName, eventName } = req.params;
 
   try {
     const pool = await getConnection();
+    const modelResult = await pool.request().input("ModelName", modelName)
+      .query(`
+        SELECT ModelID 
+        FROM Modele
+        WHERE NumeModel = @ModelName
+      `);
+
+    if (modelResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Model not found" });
+    }
+
+    const modelId = modelResult.recordset[0].ModelID;
+
+    const eventResult = await pool.request().input("EventName", eventName)
+      .query(`
+        SELECT EvenimentID 
+        FROM Evenimente 
+        WHERE Nume = @EventName
+      `);
+
+    if (eventResult.recordset.length === 0) {
+      return res.status(400).json({ error: "Client not found" });
+    }
+
+    const eventId = eventResult.recordset[0].EvenimentID;
+
     await pool.request().input("modelId", modelId).input("eventId", eventId)
       .query(`
         DELETE FROM Participari
@@ -1001,24 +1262,56 @@ app.delete("/api/users/:id", async (req, res) => {
   }
 });
 
+app.get("/api/manager/getAgency", async (req, res) => {
+  try {
+    const agencyId = req.query.agencyId;
+
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("agencyId", agencyId)
+      .query(`
+        SELECT 
+          NumeAgentie AS agencyName
+        FROM Agentii
+        WHERE AgentieID = @agencyId
+      `);
+
+    await pool.close();
+
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ error: "Agency not found" });
+    }
+
+    res.json(result.recordset[0]);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get agency" });
+  }
+});
+
+
 app.get("/api/manager/models", async (req, res) => {
   const agencyId = req.query.agencyId;
   const pool = await getConnection();
 
   const result = await pool.request().input("agencyId", agencyId).query(`
-    SELECT 
-      ModelID AS id, 
-      NumeModel AS lastName, 
-      PrenumeModel AS firstName, 
-      Varsta AS age, 
-      Inaltime AS height,
-      Greutate AS weight,
-      AgentieID AS agencyId,
-      DataInregistrare AS date,
-      CategorieID AS categoryId,
-      Sex AS gender 
-    FROM Modele 
-    WHERE AgentieID = @agencyId`);
+   SELECT 
+        m.ModelID AS id, 
+        m.NumeModel AS lastName, 
+        m.PrenumeModel AS firstName, 
+        m.Varsta AS age, 
+        m.Inaltime AS height,
+        m.Greutate AS weight,
+        m.AgentieID AS agencyId,
+        m.DataInregistrare AS date,
+        m.CategorieID AS categoryId,
+        c.DenumireCategorie AS categoryName,
+        m.Sex AS gender
+      FROM Modele m
+      LEFT JOIN Categorii c ON m.CategorieID = c.CategorieID
+    WHERE m.AgentieID = @agencyId`);
 
   await pool.close();
   res.json(result.recordset);
@@ -1030,14 +1323,15 @@ app.get("/api/manager/contracts", async (req, res) => {
     const pool = await getConnection();
     const result = await pool.request().input("agencyId", agencyId).query(`
       SELECT 
-        ContractID AS id, 
-        ClientID AS clientId, 
-        DataInceput AS startDate,
-        Status AS status,
-        TipContract AS contractType,
-        Valoare AS payment
-      FROM Contracte
-      WHERE AgentieID = @agencyId
+        c.ContractID AS id, 
+        b.NumeClient AS clientName, 
+        c.DataInceput AS startDate,
+        c.Status AS status,
+        c.TipContract AS contractType,
+        c.Valoare AS payment
+      FROM Contracte c
+      LEFT JOIN Clienti b ON c.ClientID = b.ClientID
+      WHERE c.AgentieID = @agencyId
     `);
     res.json(result.recordset);
     await pool.close();

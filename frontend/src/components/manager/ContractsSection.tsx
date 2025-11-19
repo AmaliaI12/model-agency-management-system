@@ -3,7 +3,7 @@ import "../../styles/AdminDashboard.css";
 
 interface Contract {
     id: number;
-    clientId: number;
+    clientName: string;
     startDate: string;
     status: string;
     contractType: string;
@@ -11,27 +11,35 @@ interface Contract {
 }
 
 interface Props {
-  agencyId: string | null;
+    agencyId: string | null;
 }
 
 const ContractsSection: React.FC<Props> = ({ agencyId }) => {
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [editing, setEditing] = useState<Contract | null>(null);
     const [newContract, setNewContract] = useState<Partial<Contract>>({});
+    const [agencyName, setAgencyName] = useState<string>("");
+
+    const fetchAgency = async () => {
+        const res = await fetch(`http://localhost:5000/api/manager/getAgency?agencyId=${agencyId}`);
+        const data = await res.json();
+        setAgencyName(data.agencyName);
+    };
 
     const fetchContracts = async () => {
-    if (!agencyId) return;
+        if (!agencyId) return;
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/manager/contracts?agencyId=${agencyId}`);
-      const data = await res.json();
-      setContracts(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+        try {
+            const res = await fetch(`http://localhost:5000/api/manager/contracts?agencyId=${agencyId}`);
+            const data = await res.json();
+            setContracts(data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     useEffect(() => {
+        fetchAgency();
         fetchContracts();
     }, [agencyId]);
 
@@ -40,7 +48,7 @@ const ContractsSection: React.FC<Props> = ({ agencyId }) => {
         e.preventDefault();
         const contractToSend = {
             ...newContract,
-            agencyId: Number(agencyId),
+            agencyName: agencyName
         };
         await fetch("http://localhost:5000/api/contracts", {
             method: "POST",
@@ -56,7 +64,7 @@ const ContractsSection: React.FC<Props> = ({ agencyId }) => {
         e.preventDefault();
         const contractToSend = {
             ...editing,
-            agencyId: Number(agencyId),
+            agencyName: agencyName
         };
         if (!editing) return;
         console.error("Contract ID:", editing.id);
@@ -82,10 +90,10 @@ const ContractsSection: React.FC<Props> = ({ agencyId }) => {
             {/* Add form */}
             <form onSubmit={handleAdd} className="admin-form">
                 <input
-                    type="number"
-                    placeholder="Client ID"
-                    value={newContract.clientId || ""}
-                    onChange={(e) => setNewContract({ ...newContract, clientId: Number(e.target.value) })}
+                    type="text"
+                    placeholder="Client"
+                    value={newContract.clientName || ""}
+                    onChange={(e) => setNewContract({ ...newContract, clientName: e.target.value })}
                 />
                 <input
                     type="text"
@@ -143,7 +151,7 @@ const ContractsSection: React.FC<Props> = ({ agencyId }) => {
                     editing?.id === contract.id ? (
                         <tr key={contract.id}>
                             <td>{contract.id}</td>
-                            <td><input value={editing.clientId} onChange={(e) => setEditing({ ...editing, clientId: Number(e.target.value) })} /></td>
+                            <td><input value={editing.clientName} onChange={(e) => setEditing({ ...editing, clientName: e.target.value })} /></td>
                             <td><input value={editing.startDate} onChange={(e) => setEditing({ ...editing, startDate: e.target.value })} /></td>
                             <td>
                                 <select
@@ -180,7 +188,7 @@ const ContractsSection: React.FC<Props> = ({ agencyId }) => {
                     ) : (
                         <tr key={contract.id}>
                             <td>{contract.id}</td>
-                            <td>{contract.clientId}</td>
+                            <td>{contract.clientName}</td>
                             <td>{contract.startDate.slice(0, 10)}</td>
                             <td>{contract.status}</td>
                             <td>{contract.contractType}</td>

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import "../../styles/AdminDashboard.css";
 
 interface Participation {
-    modelId: number;
-    eventId: number;
+    modelName: string;
+    eventName: string;
     role: string;
     payment: number;
 }
@@ -41,7 +41,7 @@ const ParticipationsTable: React.FC = () => {
         if (!editing) return;
 
         await fetch(
-            `http://localhost:5000/api/participations/${editing.modelId}/${editing.eventId}`,
+            `http://localhost:5000/api/participations/${editing.modelName}/${editing.eventName}`,
             {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -54,7 +54,7 @@ const ParticipationsTable: React.FC = () => {
     };
 
     // DELETE
-    const handleDelete = async (modelId: number, eventId: number) => {
+    const handleDelete = async (modelId: string, eventId: string) => {
         await fetch(
             `http://localhost:5000/api/participations/${modelId}/${eventId}`,
             { method: "DELETE" }
@@ -69,20 +69,20 @@ const ParticipationsTable: React.FC = () => {
             {/* ADD FORM */}
             <form onSubmit={handleAdd} className="admin-form">
                 <input
-                    type="number"
-                    placeholder="Model ID"
-                    value={newParticipation.modelId || ""}
+                    type="text"
+                    placeholder="Model"
+                    value={newParticipation.modelName || ""}
                     onChange={(e) =>
-                        setNewParticipation({ ...newParticipation, modelId: Number(e.target.value) })
+                        setNewParticipation({ ...newParticipation, modelName: e.target.value })
                     }
                 />
 
                 <input
-                    type="number"
-                    placeholder="Event ID"
-                    value={newParticipation.eventId || ""}
+                    type="text"
+                    placeholder="Event"
+                    value={newParticipation.eventName || ""}
                     onChange={(e) =>
-                        setNewParticipation({ ...newParticipation, eventId: Number(e.target.value) })
+                        setNewParticipation({ ...newParticipation, eventName: e.target.value })
                     }
                 />
 
@@ -115,8 +115,8 @@ const ParticipationsTable: React.FC = () => {
             <table>
                 <thead>
                     <tr>
-                        <th>Model ID</th>
-                        <th>Event ID</th>
+                        <th>Model</th>
+                        <th>Event</th>
                         <th>Role</th>
                         <th>Payment</th>
                         <th>Actions</th>
@@ -126,11 +126,11 @@ const ParticipationsTable: React.FC = () => {
                 <tbody>
                     {participations.map((p) =>
                         editing &&
-                        editing.modelId === p.modelId &&
-                        editing.eventId === p.eventId ? (
-                            <tr key={`${p.modelId}-${p.eventId}`}>
-                                <td>{p.modelId}</td>
-                                <td>{p.eventId}</td>
+                        editing.modelName === p.modelName &&
+                        editing.eventName === p.eventName ? (
+                            <tr key={`${p.modelName}-${p.modelName}`}>
+                                <td>{p.modelName}</td>
+                                <td>{p.eventName}</td>
 
                                 <td>
                                     <input
@@ -160,15 +160,15 @@ const ParticipationsTable: React.FC = () => {
                                 </td>
                             </tr>
                         ) : (
-                            <tr key={`${p.modelId}-${p.eventId}`}>
-                                <td>{p.modelId}</td>
-                                <td>{p.eventId}</td>
+                            <tr key={`${p.modelName}-${p.eventName}`}>
+                                <td>{p.modelName}</td>
+                                <td>{p.eventName}</td>
                                 <td>{p.role}</td>
                                 <td>{p.payment}</td>
 
                                 <td>
                                     <button onClick={() => setEditing(p)}>Edit</button>
-                                    <button onClick={() => handleDelete(p.modelId, p.eventId)}>
+                                    <button onClick={() => handleDelete(p.modelName, p.eventName)}>
                                         Delete
                                     </button>
                                 </td>

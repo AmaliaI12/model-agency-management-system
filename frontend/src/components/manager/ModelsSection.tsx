@@ -7,9 +7,8 @@ interface Model {
   age: number;
   height: number;
   weight: number;
-  agencyId: number;
   date: string;
-  categoryId: number;
+  categoryName: string;
   gender: string;
 }
 
@@ -22,6 +21,14 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
   const [models, setModels] = useState<Model[]>([]);
   const [editing, setEditing] = useState<Model | null>(null);
   const [newModel, setNewModel] = useState<Partial<Model>>({});
+  const [agencyName, setAgencyName] = useState<string>("");
+
+  const fetchAgency = async () => {
+    const res = await fetch(`http://localhost:5000/api/manager/getAgency?agencyId=${agencyId}`);
+    const data = await res.json();
+    setAgencyName(data.agencyName);
+  };
+
 
   const fetchModels = async () => {
     if (!agencyId) return;
@@ -36,6 +43,7 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
   };
 
   useEffect(() => {
+    fetchAgency();
     fetchModels();
   }, [agencyId]);
 
@@ -44,7 +52,7 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
     e.preventDefault();
     const modelToSend = {
       ...newModel,
-      agencyId: Number(agencyId),
+      agencyName: agencyName
     };
     await fetch("http://localhost:5000/api/modele", {
       method: "POST",
@@ -60,10 +68,15 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
     e.preventDefault();
     if (!editing) return;
 
+    const modelToSend = {
+      ...editing,
+      agencyName: agencyName
+    };
+
     await fetch(`http://localhost:5000/api/modele/${editing.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editing),
+      body: JSON.stringify(modelToSend),
     });
     setEditing(null);
     fetchModels();
@@ -122,11 +135,11 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
           }
         />
         <input
-          type="number"
-          placeholder="Category ID"
-          value={newModel.categoryId ?? ""}
+          type="text"
+          placeholder="Category"
+          value={newModel.categoryName ?? ""}
           onChange={(e) =>
-            setNewModel({ ...newModel, categoryId: Number(e.target.value) })
+            setNewModel({ ...newModel, categoryName: (e.target.value) })
           }
         />
         <select
@@ -151,7 +164,7 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
             <th>Height</th>
             <th>Weight</th>
             <th className={editing ? "hide-column" : ""}>Date</th>
-            <th>Category ID</th>
+            <th>Category</th>
             <th>Gender</th>
             <th>Actions</th>
           </tr>
@@ -207,12 +220,12 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
 
                 <td>
                   <input
-                    type="number"
-                    value={editing.categoryId}
+                    type="text"
+                    value={editing.categoryName}
                     onChange={(e) =>
                       setEditing({
                         ...editing,
-                        categoryId: Number(e.target.value),
+                        categoryName: (e.target.value),
                       })
                     }
                   />
@@ -245,7 +258,7 @@ const ModelsSection: React.FC<Props> = ({ agencyId }) => {
                   {model.date?.slice(0, 10)}
                 </td>
 
-                <td>{model.categoryId}</td>
+                <td>{model.categoryName}</td>
                 <td>{model.gender}</td>
                 <td>
                   <button onClick={() => setEditing(model)}>Edit</button>
