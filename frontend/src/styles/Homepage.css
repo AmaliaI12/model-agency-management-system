@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   /* padding-left: 0%; */
   margin-left: 0;
   overflow-x: hidden;
@@ -18,7 +19,7 @@ body, html {
   align-items: center;
   padding: 1rem 3rem;
   background-color: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -72,7 +73,7 @@ body, html {
   background: white;
   border-radius: 6px;
   padding: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
 }
@@ -84,7 +85,7 @@ body, html {
   text-align: left;
   cursor: pointer;
   font-size: 18px;
-  color:rgba(32, 27, 27, 0.836)
+  color: rgba(32, 27, 27, 0.836)
 }
 
 .dropdown button:hover {
@@ -106,7 +107,7 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -124,6 +125,153 @@ body, html {
 .hero-overlay p {
   font-size: 1.2rem;
   max-width: 600px;
+}
+
+.main-content {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  padding: 2rem;
+}
+
+/* Left sidebar section */
+
+.sidebar-left, .sidebar-right {
+  flex: 0 0 200px;
+  background: linear-gradient(180deg, #f9f9f9, #eaeaea);
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.stat-card-image {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 250px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.stat-card-image:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(70%);
+}
+
+.stat-card-image .stat-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  text-align: center;
+  font-weight: 600;
+}
+
+.stat-card-image .stat-text strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #ffd166;
+}
+
+.stat-card {
+  background: #fff;
+  height: 150px;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12);
+}
+
+.stat-text {
+  text-align: center;
+  color: #333;
+}
+
+.stat-text strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: #e63946;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1d3557;
+}
+
+.stat-list {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 1rem;
+}
+
+.stat-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stat-list::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.3);
+  border-radius: 3px;
+}
+
+
+.sidebar-right {
+  flex: 0 0 200px;
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  height: auto;
+}
+
+/* Sidebar right section */
+
+.sidebar-right button {
+  display: block;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border: none;
+  background-color: #e63946;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 600;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.sidebar-right button:hover {
+  transform: scale(1.05);
+  background-color: #d62828;
+}
+
+
+
+.carousels-wrapper {
+  flex: 1;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 /* Carousel Sections */
@@ -148,8 +296,8 @@ body, html {
 }
 
 .carousel img {
-  width: 400px;
-  height: 500px;
+  width: 300px;
+  height: 400px;
   object-fit: cover;
   border-radius: 12px;
   transition: transform 0.3s ease;
@@ -191,6 +339,23 @@ body, html {
     font-size: 1rem;
   }
 
+  .main-content {
+    flex-direction: column;
+    /* sidebars sub carusele */
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .sidebar-left,
+  .sidebar-right {
+    width: 90%;
+    flex: none;
+  }
+
+  .carousels-wrapper {
+    width: 100%;
+  }
+
   .carousel img {
     width: 250px;
     height: 300px;
@@ -223,6 +388,11 @@ body, html {
 
   .hero-overlay p {
     font-size: 1rem;
+  }
+
+  .sidebar-left,
+  .sidebar-right {
+    display: none;
   }
 
   .carousel {
@@ -310,6 +480,7 @@ body, html {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

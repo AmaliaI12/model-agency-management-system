@@ -2,10 +2,6 @@
 import express from "express";
 import cors from "cors";
 import { getConnection } from "./database.ts";
-import sql from "mssql";
-import type { IRecordSet } from "mssql";
-
-
 
 const app = express();
 const PORT = 5000;
@@ -1267,10 +1263,7 @@ app.get("/api/manager/getAgency", async (req, res) => {
     const agencyId = req.query.agencyId;
 
     const pool = await getConnection();
-    const result = await pool
-      .request()
-      .input("agencyId", agencyId)
-      .query(`
+    const result = await pool.request().input("agencyId", agencyId).query(`
         SELECT 
           NumeAgentie AS agencyName
         FROM Agentii
@@ -1284,13 +1277,11 @@ app.get("/api/manager/getAgency", async (req, res) => {
     }
 
     res.json(result.recordset[0]);
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get agency" });
   }
 });
-
 
 app.get("/api/manager/models", async (req, res) => {
   const agencyId = req.query.agencyId;
@@ -1338,6 +1329,103 @@ app.get("/api/manager/contracts", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch contracts" });
+  }
+});
+
+// Stats queries (complex)
+
+app.get("/api/stats/top-model", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT TOP 1
+          m.PrenumeModel + ' ' + m.NumeModel AS full_name,
+          (SELECT COUNT(*) FROM Participari p WHERE p.ModelID = m.ModelID) AS total_events
+      FROM Modele m
+      ORDER BY total_events DESC
+    `;
+
+    const result = await pool.request().query(query);
+    res.json(result.recordset[0]); // primul rând
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/stats/top-agency", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT TOP 1
+          a.NumeAgentie AS agency_name,
+          (SELECT COUNT(*) FROM Modele m WHERE m.AgentieID = a.AgentieID) AS total_models
+      FROM Agentii a
+      ORDER BY total_models DESC
+    `;
+    const result = await pool.request().query(query);
+    res.json(result.recordset[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/stats/top-locations", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT TOP 5
+        l.NumeLocatie AS name,
+        (SELECT COUNT(*) FROM Evenimente e WHERE e.LocatieID = l.LocatieID) AS total_events
+      FROM Locatii l
+      ORDER BY total_events DESC
+    `;
+    const result = await pool.request().query(query);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/stats/events-today", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT TOP 3 e.EvenimentID AS id,
+             e.Nume AS name,
+             l.NumeLocatie AS location
+      FROM Evenimente e
+      LEFT JOIN Locatii l ON e.LocatieID = l.LocatieID
+      WHERE CAST(e.DataEveniment AS DATE) <= CAST(GETDATE() AS DATE)
+      ORDER BY e.Nume
+    `;
+    const result = await pool.request().query(query);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/stats/models-by-category", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT TOP 5
+      c.DenumireCategorie AS category_name,
+             (SELECT COUNT(*) 
+              FROM Modele m 
+              WHERE m.CategorieID = c.CategorieID) AS total_models
+      FROM Categorii c
+      ORDER BY total_models DESC
+    `;
+    const result = await pool.request().query(query);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
   }
 });
 
