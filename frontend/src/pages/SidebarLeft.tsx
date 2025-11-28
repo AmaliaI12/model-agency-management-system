@@ -52,7 +52,7 @@ const SidebarLeft: React.FC = () => {
 
     return (
         <div className="sidebar-left">
-            <h3 style={{ textAlign: "center", color: "#e63946" }}>Statistics</h3>
+            <h3>Statistics</h3>
 
             {/* Events Today */}
             <div className="stat-card">
@@ -71,7 +71,8 @@ const SidebarLeft: React.FC = () => {
                 <img src="../../images/stats/top-model.jpg" alt="Top Model" />
                 <div className="stat-text">
                     <strong>Top Model</strong>
-                    {topModel ? <span>{topModel.full_name} ({topModel.total_events})</span> : <span>Loading...</span>}
+                    {topModel ? <span>{topModel.full_name}
+                    </span> : <span>Loading...</span>}
                 </div>
             </div>
 
@@ -92,7 +93,8 @@ const SidebarLeft: React.FC = () => {
                 <img src="../../images/stats/top-agency.jpg" alt="Top Agency" />
                 <div className="stat-text">
                     <strong>Top Agency</strong>
-                    {topAgency ? <span>{topAgency.agency_name} ({topAgency.total_models})</span> : <span>Loading...</span>}
+                    {topAgency ? <span>{topAgency.agency_name}
+                    </span> : <span>Loading...</span>}
                 </div>
             </div>
 

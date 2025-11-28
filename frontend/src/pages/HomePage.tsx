@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Login from "./Login";
 import Signup from "./Signup";
 import SidebarLeft from "./SidebarLeft";
-import SidebarRight from "./SidebarRight";
 import ModelViewer from "../components/client/ModelViewer";
 import AgencyViewer from "../components/client/AgencyViewer";
 import LocationViewer from "../components/client/LocationViewer";
