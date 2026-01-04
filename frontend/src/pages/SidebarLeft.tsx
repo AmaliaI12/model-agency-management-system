@@ -1,117 +1,163 @@
 import React, { useEffect, useState } from "react";
 
-interface TopModel {
-    full_name: string;
-    total_events: number;
+interface TopEarningModel {
+    model_name: string;
+    total_earnings: number;
+}
+
+interface ModelAboveAvg {
+    NumeModel: string;
+    PrenumeModel: string;
+    TotalCastig: number;
 }
 
 interface TopAgency {
-    agency_name: string;
-    total_models: number;
+    NumeAgentie: string;
+    Email: string;
 }
 
-interface LocationStat {
-    name: string;
-    total_events: number;
+interface DominantCategory {
+    DenumireCategorie: string;
+    VenitCategorie: number;
+    VenitTotalSistem: number;
 }
 
-interface EventToday {
-    id: number;
-    name: string;
-    location: string;
+interface PremiumEvent {
+    NumeEveniment: string;
+    Buget: number;
+    NumeLocatie: string;
 }
 
 const SidebarLeft: React.FC = () => {
-    const [topModel, setTopModel] = useState<TopModel | null>(null);
-    const [topAgency, setTopAgency] = useState<TopAgency | null>(null);
-    const [topLocations, setTopLocations] = useState<LocationStat[]>([]);
-    const [eventsToday, setEventsToday] = useState<EventToday[]>([]);
-    const [modelsByCategory, setModelsByCategory] = useState<{ category_name: string, total_models: number }[]>([]);
+    const [topModels, setTopModels] = useState<TopEarningModel[]>([]);
+    const [modelsAboveAvg, setModelsAboveAvg] = useState<ModelAboveAvg[]>([]);
+    const [topAgencies, setTopAgencies] = useState<TopAgency[]>([]);
+    const [dominantCategories, setDominantCategories] = useState<DominantCategory[]>([]);
+    
+    const [premiumEvents, setPremiumEvents] = useState<PremiumEvent[]>([]);
+    const [minBudget, setMinBudget] = useState<number>(5000); // Valoarea default
 
     useEffect(() => {
-        fetch('http://localhost:5000/api/stats/top-model')
+        // 1. Top Models
+        fetch("http://localhost:5000/api/stats/top-models-by-contract-value")
             .then(res => res.json())
-            .then(data => setTopModel(data));
+            .then(data => setTopModels(data))
+            .catch(err => console.error("Err top-models:", err));
 
-        fetch('http://localhost:5000/api/stats/top-agency')
+        // 2. Models Above Avg
+        fetch("http://localhost:5000/api/stats/models-above-avg-revenue")
             .then(res => res.json())
-            .then(data => setTopAgency(data));
+            .then(data => setModelsAboveAvg(data))
+            .catch(err => console.error("Err models-above-avg:", err));
 
-        fetch('http://localhost:5000/api/stats/top-locations')
+        // 3. Top Tier Agencies
+        fetch("http://localhost:5000/api/stats/top-tier-agencies")
             .then(res => res.json())
-            .then(data => setTopLocations(data));
+            .then(data => setTopAgencies(data))
+            .catch(err => console.error("Err top-tier-agencies:", err));
 
-        fetch('http://localhost:5000/api/stats/events-today')
+        // 4. Dominant Categories
+        fetch("http://localhost:5000/api/stats/dominant-categories")
             .then(res => res.json())
-            .then(data => setEventsToday(data));
+            .then(data => setDominantCategories(data))
+            .catch(err => console.error("Err dominant-categories:", err));
+    }, []);
 
-        fetch('http://localhost:5000/api/stats/models-by-category')
+    // Fetch separat pentru Premium Events (dependent de minBudget)
+    const fetchPremiumEvents = () => {
+        fetch(`http://localhost:5000/api/stats/premium-events?minBudget=${minBudget}`)
             .then(res => res.json())
-            .then(data => setModelsByCategory(data));
+            .then(data => setPremiumEvents(data))
+            .catch(err => console.error("Err premium-events:", err));
+    };
+
+    // Initial fetch for premium events
+    useEffect(() => {
+        fetchPremiumEvents();
     }, []);
 
     return (
         <div className="sidebar-left">
-            <h3>Statistics</h3>
+            <h3>Advanced Analytics</h3>
 
-            {/* Events Today */}
-            <div className="stat-card">
-                <div className="stat-text">
-                    <strong>Events Today</strong>
+            <div className="stats-grid">
+
+                {/* 1. Top 5 Models (Interogare Clasica) */}
+                <div className="stat-card">
+                    <strong>Top Models (Total)</strong>
                     <ul className="stat-list">
-                        {eventsToday.length ? eventsToday.map(ev => (
-                            <li key={ev.id}>{ev.name} @ {ev.location}</li>
+                        {topModels.length > 0 ? topModels.map((m, idx) => (
+                            <li key={idx}>{m.model_name} – €{m.total_earnings}</li>
                         )) : <li>Loading...</li>}
                     </ul>
                 </div>
-            </div>
 
-            {/* Top Model */}
-            <div className="stat-card-image">
-                <img src="../../images/stats/top-model.jpg" alt="Top Model" />
-                <div className="stat-text">
-                    <strong>Top Model</strong>
-                    {topModel ? <span>{topModel.full_name}
-                    </span> : <span>Loading...</span>}
-                </div>
-            </div>
-
-            {/* Models by Category */}
-            <div className="stat-card">
-                <div className="stat-text">
-                    <strong>Models by Category</strong>
+                {/* 2. Models Above Average (Subquery in HAVING & FROM) */}
+                <div className="stat-card">
+                    <strong>Models Above Avg Revenue</strong>
+                    <p style={{fontSize: '0.8rem', color: '#666'}}>Earned more than avg model</p>
                     <ul className="stat-list">
-                        {modelsByCategory.length ? modelsByCategory.map(cat => (
-                            <li key={cat.category_name}>{cat.category_name}: {cat.total_models}</li>
+                        {modelsAboveAvg.length > 0 ? modelsAboveAvg.map((m, idx) => (
+                            <li key={idx}>
+                                {m.PrenumeModel} {m.NumeModel} – €{m.TotalCastig}
+                            </li>
+                        )) : <li>No models found or Loading...</li>}
+                    </ul>
+                </div>
+
+                {/* 3. Top Tier Agencies (EXISTS Operator) */}
+                <div className="stat-card">
+                    <strong>Elite Agencies</strong>
+                    <p style={{fontSize: '0.8rem', color: '#666'}}>With high budget events</p>
+                    <ul className="stat-list">
+                        {topAgencies.length > 0 ? topAgencies.map((a, idx) => (
+                            <li key={idx}>
+                                {a.NumeAgentie} <br/>
+                                <span style={{fontSize: '0.75rem', color: '#888'}}>{a.Email}</span>
+                            </li>
                         )) : <li>Loading...</li>}
                     </ul>
                 </div>
-            </div>
 
-            {/* Top Agency */}
-            <div className="stat-card-image">
-                <img src="../../images/stats/top-agency.jpg" alt="Top Agency" />
-                <div className="stat-text">
-                    <strong>Top Agency</strong>
-                    {topAgency ? <span>{topAgency.agency_name}
-                    </span> : <span>Loading...</span>}
-                </div>
-            </div>
-
-            {/* Top Locations */}
-            <div className="stat-card">
-                <div className="stat-text">
-                    <strong>Top Locations</strong>
+                {/* 4. Dominant Categories (Subquery in SELECT) */}
+                <div className="stat-card">
+                    <strong>Dominant Categories</strong>
+                    <p style={{fontSize: '0.8rem', color: '#666'}}> 10% of total system revenue</p>
                     <ul className="stat-list">
-                        {topLocations.length ? topLocations.map(loc => (
-                            <li key={loc.name}>{loc.name} ({loc.total_events})</li>
+                        {dominantCategories.length > 0 ? dominantCategories.map((c, idx) => (
+                            <li key={idx}>
+                                {c.DenumireCategorie} – €{c.VenitCategorie}
+                            </li>
                         )) : <li>Loading...</li>}
                     </ul>
                 </div>
-            </div>
 
+                {/* 5. Premium Events (Parametru Variabil) */}
+                <div className="stat-card">
+                    <strong>Premium Events Filter</strong>
+                    <div style={{ margin: '10px 0', display: 'flex', gap: '5px' }}>
+                        <input 
+                            type="number" 
+                            value={minBudget} 
+                            onChange={(e) => setMinBudget(Number(e.target.value))}
+                            style={{ width: '70px', padding: '2px' }}
+                        />
+                        <button onClick={fetchPremiumEvents} style={{ cursor: 'pointer', fontSize: '0.8rem' }}>
+                            Update
+                        </button>
+                    </div>
+                    <ul className="stat-list">
+                        {premiumEvents.length > 0 ? premiumEvents.map((e, idx) => (
+                            <li key={idx}>
+                                <strong>{e.NumeEveniment}</strong><br/>
+                                Budget: €{e.Buget} @ {e.NumeLocatie}
+                            </li>
+                        )) : <li>No events found for this budget.</li>}
+                    </ul>
+                </div>
+
+            </div>
         </div>
-
     );
 };
 

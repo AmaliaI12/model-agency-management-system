@@ -5,6 +5,7 @@ import SidebarLeft from "./SidebarLeft";
 import ModelViewer from "../components/client/ModelViewer";
 import AgencyViewer from "../components/client/AgencyViewer";
 import LocationViewer from "../components/client/LocationViewer";
+
 import "../styles/Homepage.css";
 
 interface UserData {
@@ -33,6 +34,8 @@ const HomePage: React.FC = () => {
   };
 
   // VIEW CONTROL
+
+  // MODELS
   const [showModels, setShowModels] = useState(false);
   const [models, setModels] = useState([]);
 
@@ -47,6 +50,43 @@ const HomePage: React.FC = () => {
       }
     }
     setShowModels(!showModels);
+  };
+
+  // SEARCH STATES - MODELS
+  const [modelName, setModelName] = useState("");
+  const [modelGender, setmodelGender] = useState("");
+  const [minHeight, setMinHeight] = useState("");
+
+  const searchModels = async () => {
+    const params = new URLSearchParams();
+
+    if (modelName.trim() !== "") {
+      params.append("name", modelName);
+    }
+
+    if (modelGender !== "") {
+      params.append("gender", modelGender);
+    }
+
+    if (minHeight !== "") {
+      params.append("minHeight", minHeight);
+    }
+
+    const url =
+      params.toString().length > 0
+        ? `http://localhost:5000/api/modele/search?${params.toString()}`
+        : "http://localhost:5000/api/modele";
+
+    console.log(url);
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      setModels(data);
+      setShowModels(true);
+    } catch (err) {
+      console.error("Search failed", err);
+    }
   };
 
   // AGENCIES
@@ -66,6 +106,38 @@ const HomePage: React.FC = () => {
     setShowAgencies(!showAgencies);
   };
 
+  // SEARCH AGENCY
+  const [agencyName, setAgencyName] = useState("");
+  const [agencyCity, setAgencyCity] = useState("");
+
+  const searchAgency = async () => {
+    const params = new URLSearchParams();
+
+    if (agencyName.trim() !== "") {
+      params.append("name", agencyName);
+    }
+
+    if (agencyCity.trim() !== "") {
+      params.append("agencyCity", agencyCity);
+    }
+
+    const url =
+      params.toString().length > 0
+        ? `http://localhost:5000/api/agencies/search?${params.toString()}`
+        : "http://localhost:5000/api/agentii";
+
+    console.log(url);
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      setAgencies(data);
+      setShowAgencies(true);
+    } catch (err) {
+      console.error("Search failed", err);
+    }
+  };
+
   // LOCATIONS
   const [showLocations, setShowLocations] = useState(false);
   const [locations, setLocations] = useState([]);
@@ -83,6 +155,42 @@ const HomePage: React.FC = () => {
     setShowLocations(!showLocations);
   };
 
+  // SEARCH STATES - MODELS
+  const [locationName, setLocationName] = useState("");
+  const [city, setCity] = useState("");
+  const [minCapacity, setMinCapacity] = useState("");
+
+  const searchLocation = async () => {
+    const params = new URLSearchParams();
+
+    if (locationName.trim() !== "") {
+      params.append("name", locationName);
+    }
+
+    if (city !== "") {
+      params.append("city", city);
+    }
+
+    if (minCapacity !== "") {
+      params.append("minCapacity", minCapacity);
+    }
+
+    const url =
+      params.toString().length > 0
+        ? `http://localhost:5000/api/locations/search?${params.toString()}`
+        : "http://localhost:5000/api/locations";
+
+    console.log(url);
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      setLocations(data);
+      setShowLocations(true);
+    } catch (err) {
+      console.error("Search failed", err);
+    }
+  };
 
   return (
     <div className="home-container">
@@ -149,9 +257,42 @@ const HomePage: React.FC = () => {
               <img src="../../images/Carousels/model2.jpg" alt="Model 2" />
               <img src="../../images/Carousels/model3.jpg" alt="Model 3" />
             </div>
+
             <button className="view-btn" onClick={toggleModels}>
               {showModels ? "Hide Models" : "View Models"}
             </button>
+
+            {showModels && (
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by name"
+                  value={modelName}
+                  onChange={(e) => setModelName(e.target.value)}
+                />
+
+                <select
+                  value={modelGender}
+                  onChange={(e) => setmodelGender(e.target.value)}
+                >
+                  <option value="">Gender</option>
+                  <option value="F">Female</option>
+                  <option value="M">Male</option>
+                </select>
+
+                <input
+                  type="number"
+                  placeholder="Min height"
+                  value={minHeight}
+                  onChange={(e) => setMinHeight(e.target.value)}
+                />
+
+                <button onClick={searchModels}>
+                  Search
+                </button>
+              </div>
+            )}
+
             {showModels && (
               <div className="models-section">
                 <ModelViewer models={models} />
@@ -170,6 +311,27 @@ const HomePage: React.FC = () => {
             <button className="view-btn" onClick={toggleAgencies}>
               {showAgencies ? "Hide Agencies" : "View Agencies"}
             </button>
+
+            {showAgencies && (
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by name"
+                  value={agencyName}
+                  onChange={(e) => setAgencyName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Search by city"
+                  value={agencyCity}
+                  onChange={(e) => setAgencyCity(e.target.value)}
+                />
+                <button onClick={searchAgency}>
+                  Search
+                </button>
+              </div>
+            )}
+
             {showAgencies && (
               <div className="agencies-section">
                 <AgencyViewer agencies={agencies} />
@@ -188,6 +350,36 @@ const HomePage: React.FC = () => {
             <button className="view-btn" onClick={toggleLocations}>
               {showLocations ? "Hide Locations" : "View Locations"}
             </button>
+
+            {showLocations && (
+              <div className="search-bar">
+                <input
+                  type="text"
+                  placeholder="Search by name"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Search city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+
+                <input
+                  type="number"
+                  placeholder="Min capacity"
+                  value={minCapacity}
+                  onChange={(e) => setMinCapacity(e.target.value)}
+                />
+
+                <button onClick={searchLocation}>
+                  Search
+                </button>
+              </div>
+            )}
+
             {showLocations && (
               <div className="locations-section">
                 <LocationViewer locations={locations} />
@@ -204,7 +396,10 @@ const HomePage: React.FC = () => {
             Contact us at:{" "}
             <a href="mailto:info@modelagency.com">info@modelagency.com</a>
           </p>
-          <p>© {new Date().getFullYear()} Model Agency Management. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Model Agency Management. All rights
+            reserved.
+          </p>
         </div>
       </footer>
 

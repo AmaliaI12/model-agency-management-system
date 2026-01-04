@@ -14,7 +14,10 @@ app.get("/api/hello", (req, res) => {
   res.json({ message: "Hello!" });
 });
 
-// Login route
+
+// ============ Login route =================== 
+
+
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -29,10 +32,10 @@ app.post("/api/login", async (req, res) => {
       .input("email", email)
       .input("parola", password)
       .query(
-        "SELECT nume, email, rol, AgentieID FROM utilizatori WHERE email = @email AND parola = @parola"
+        "SELECT nume, email, rol, AgentieID FROM Utilizatori WHERE email = @email AND parola = @parola"
       );
 
-    await pool.close();
+    //await pool.close();
 
     if (result.recordset.length > 0) {
       const user = result.recordset[0];
@@ -68,10 +71,10 @@ app.post("/api/signup", async (req, res) => {
     const existingUser = await pool
       .request()
       .input("email", email)
-      .query("SELECT email FROM utilizatori WHERE email = @email");
+      .query("SELECT email FROM Utilizatori WHERE email = @email");
 
     if (existingUser.recordset.length > 0) {
-      await pool.close();
+      //await pool.close();
       return res.status(400).json({ error: "Email already registered." });
     }
 
@@ -86,7 +89,7 @@ app.post("/api/signup", async (req, res) => {
         "INSERT INTO Utilizatori (nume, email, parola, rol) VALUES (@name, @email, @parola, @rol)"
       );
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "User created successfully" });
   } catch (error) {
     console.error(error);
@@ -94,7 +97,10 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
-// AGENTII
+
+//  =================== AGENTII =================== 
+
+
 app.get("/api/agentii", async (req, res) => {
   try {
     const pool = await getConnection();
@@ -108,7 +114,7 @@ app.get("/api/agentii", async (req, res) => {
       FROM Agentii
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch agencies" });
@@ -134,7 +140,7 @@ app.post("/api/agentii", async (req, res) => {
         VALUES (@NumeAgentie, @Adresa, @Email, @Telefon)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json(result.recordset[0]);
   } catch (error) {
     console.error(error);
@@ -160,7 +166,7 @@ app.put("/api/agentii/:id", async (req, res) => {
         WHERE AgentieID=@AgentieID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Agency updated successfully" });
   } catch (error) {
     console.error(error);
@@ -176,7 +182,7 @@ app.delete("/api/agentii/:id", async (req, res) => {
       .request()
       .input("AgentieID", id)
       .query("DELETE FROM Agentii WHERE AgentieID = @AgentieID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Agency deleted successfully" });
   } catch (error) {
     console.error(error);
@@ -184,7 +190,9 @@ app.delete("/api/agentii/:id", async (req, res) => {
   }
 });
 
-// MODELE
+
+//  =================== MODELE =================== 
+
 
 // GET all models
 app.get("/api/modele", async (req, res) => {
@@ -209,7 +217,7 @@ app.get("/api/modele", async (req, res) => {
       LEFT JOIN Categorii c ON m.CategorieID = c.CategorieID
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch modele" });
@@ -274,7 +282,7 @@ app.post("/api/modele", async (req, res) => {
         (@NumeModel, @PrenumeModel, @Varsta, @Inaltime, @Greutate, @AgentieID, GETDATE(), @CategorieID, @Sex)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "Model created successfully" });
   } catch (error) {
     console.error("Error creating model:", error);
@@ -353,7 +361,7 @@ app.put("/api/modele/:id", async (req, res) => {
         WHERE ModelID = @ModelID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Model updated successfully" });
   } catch (error) {
     console.error("Error updating model:", error);
@@ -371,7 +379,7 @@ app.delete("/api/modele/:id", async (req, res) => {
       .request()
       .input("ModelID", id)
       .query("DELETE FROM Modele WHERE ModelID = @ModelID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Model deleted successfully" });
   } catch (error) {
     console.error("Error deleting model:", error);
@@ -379,7 +387,9 @@ app.delete("/api/modele/:id", async (req, res) => {
   }
 });
 
-// LOCATIONS
+
+//  =================== LOCATIONS =================== 
+
 
 // GET all locations
 app.get("/api/locations", async (req, res) => {
@@ -396,7 +406,7 @@ app.get("/api/locations", async (req, res) => {
       FROM Locatii
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch locations" });
@@ -420,7 +430,7 @@ app.post("/api/locations", async (req, res) => {
         VALUES (@NumeLocatie, @Adresa, @Oras, @Capacitate, @TelefonContact)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "Location created successfully" });
   } catch (error) {
     console.error("Error creating model:", error);
@@ -453,7 +463,7 @@ app.put("/api/locations/:id", async (req, res) => {
         WHERE LocatieID = @LocatieID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Location updated successfully" });
   } catch (error) {
     console.error("Error updating location:", error);
@@ -471,7 +481,7 @@ app.delete("/api/locations/:id", async (req, res) => {
       .request()
       .input("LocatieID", id)
       .query("DELETE FROM Locatii WHERE LocatieID = @LocatieID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Location deleted successfully" });
   } catch (error) {
     console.error("Error deleting location:", error);
@@ -479,7 +489,9 @@ app.delete("/api/locations/:id", async (req, res) => {
   }
 });
 
-// CLIENTS
+
+//  =================== CLIENTS =================== 
+
 
 // GET all clients
 app.get("/api/clients", async (req, res) => {
@@ -496,7 +508,7 @@ app.get("/api/clients", async (req, res) => {
       FROM Clienti
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch clients" });
@@ -520,7 +532,7 @@ app.post("/api/clients", async (req, res) => {
         VALUES (@NumeClient, @TipClient, @Telefon, @Email, @Adresa)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "Client created successfully" });
   } catch (error) {
     console.error("Error creating client:", error);
@@ -553,7 +565,7 @@ app.put("/api/clients/:id", async (req, res) => {
         WHERE ClientID = @ClientID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Client updated successfully" });
   } catch (error) {
     console.error("Error updating client:", error);
@@ -571,7 +583,7 @@ app.delete("/api/clients/:id", async (req, res) => {
       .request()
       .input("ClientID", id)
       .query("DELETE FROM Clienti WHERE ClientID = @ClientID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Client deleted successfully" });
   } catch (error) {
     console.error("Error deleting client:", error);
@@ -579,7 +591,9 @@ app.delete("/api/clients/:id", async (req, res) => {
   }
 });
 
-// CATEGORIES
+
+//  =================== CATEGORIES =================== 
+
 
 // GET all Categorys
 app.get("/api/Categories", async (req, res) => {
@@ -593,7 +607,7 @@ app.get("/api/Categories", async (req, res) => {
       FROM Categorii
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch categories" });
@@ -614,7 +628,7 @@ app.post("/api/categories", async (req, res) => {
         VALUES (@DenumireCategorie, @Descriere)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "Category created successfully" });
   } catch (error) {
     console.error("Error creating Category:", error);
@@ -641,7 +655,7 @@ app.put("/api/categories/:id", async (req, res) => {
         WHERE CategorieID = @CategorieID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Category updated successfully" });
   } catch (error) {
     console.error("Error updating Category:", error);
@@ -659,7 +673,7 @@ app.delete("/api/categories/:id", async (req, res) => {
       .request()
       .input("CategorieID", id)
       .query("DELETE FROM Categorii WHERE CategorieID = @CategorieID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
     console.error("Error deleting category:", error);
@@ -667,7 +681,9 @@ app.delete("/api/categories/:id", async (req, res) => {
   }
 });
 
-// CONTRACTS
+
+//  =================== CONTRACTS =================== 
+
 
 // GET all contracts
 app.get("/api/contracts", async (req, res) => {
@@ -687,7 +703,7 @@ app.get("/api/contracts", async (req, res) => {
       LEFT JOIN Clienti b ON c.ClientID = b.ClientID
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch contracts" });
@@ -739,7 +755,7 @@ app.post("/api/contracts", async (req, res) => {
         VALUES (@AgentieID, @ClientID, @DataInceput, @Status, @TipContract, @Valoare)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "Contract created successfully" });
   } catch (error) {
     console.error("Error creating contract:", error);
@@ -802,7 +818,7 @@ app.put("/api/contracts/:id", async (req, res) => {
         WHERE ContractID = @ContractID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Contract updated successfully" });
   } catch (error) {
     console.error("Error updating contrac:", error);
@@ -820,7 +836,7 @@ app.delete("/api/contracts/:id", async (req, res) => {
       .request()
       .input("ContractID", id)
       .query("DELETE FROM Contracte WHERE ContractID = @ContractID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Contract deleted successfully" });
   } catch (error) {
     console.error("Error deleting Contract:", error);
@@ -828,7 +844,9 @@ app.delete("/api/contracts/:id", async (req, res) => {
   }
 });
 
-// EVENTS
+
+//  =================== EVENTS =================== 
+
 
 // GET all events
 app.get("/api/events", async (req, res) => {
@@ -849,7 +867,7 @@ app.get("/api/events", async (req, res) => {
       LEFT JOIN Clienti c ON e.ClientID = c.ClientID
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch events" });
@@ -903,7 +921,7 @@ app.post("/api/events", async (req, res) => {
         VALUES (@Nume, @DataEveniment, @LocatieID, @ClientID, @Buget, @Descriere, @Status)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "Event created successfully" });
   } catch (error) {
     console.error("Error creating event:", error);
@@ -970,7 +988,7 @@ app.put("/api/events/:id", async (req, res) => {
         WHERE EvenimentID = @EvenimentID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Event updated successfully" });
   } catch (error) {
     console.error("Error updating event:", error);
@@ -988,13 +1006,17 @@ app.delete("/api/events/:id", async (req, res) => {
       .request()
       .input("EvenimentID", id)
       .query("DELETE FROM Evenimente WHERE EvenimentID = @EvenimentID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "Event deleted successfully" });
   } catch (error) {
     console.error("Error deleting event:", error);
     res.status(500).json({ error: "Failed to delete event" });
   }
 });
+
+
+//  =================== PARTICIPATIONS =================== 
+
 
 app.get("/api/participations", async (req, res) => {
   try {
@@ -1162,7 +1184,9 @@ app.delete("/api/participations/:modelName/:eventName", async (req, res) => {
   }
 });
 
-// USERS
+
+//  =================== USERS =================== 
+
 
 // GET all users
 app.get("/api/users", async (req, res) => {
@@ -1178,7 +1202,7 @@ app.get("/api/users", async (req, res) => {
       FROM Utilizatori
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch users" });
@@ -1201,7 +1225,7 @@ app.post("/api/users", async (req, res) => {
         VALUES (@Nume, @Email, @Parola, @Rol)
       `);
 
-    await pool.close();
+    //await pool.close();
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
     console.error("Error creating user:", error);
@@ -1232,7 +1256,7 @@ app.put("/api/users/:id", async (req, res) => {
         WHERE UtilizatorID = @UtilizatorID
       `);
 
-    await pool.close();
+    //await pool.close();
     res.json({ message: "User updated successfully" });
   } catch (error) {
     console.error("Error updating user:", error);
@@ -1250,13 +1274,17 @@ app.delete("/api/users/:id", async (req, res) => {
       .request()
       .input("UtilizatorID", id)
       .query("DELETE FROM Utilizatori WHERE UtilizatorID = @UtilizatorID");
-    await pool.close();
+    //await pool.close();
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
     res.status(500).json({ error: "Failed to delete user" });
   }
 });
+
+
+//  =================== MANAGER API =================== 
+
 
 app.get("/api/manager/getAgency", async (req, res) => {
   try {
@@ -1270,7 +1298,7 @@ app.get("/api/manager/getAgency", async (req, res) => {
         WHERE AgentieID = @agencyId
       `);
 
-    await pool.close();
+    //await pool.close();
 
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: "Agency not found" });
@@ -1304,7 +1332,7 @@ app.get("/api/manager/models", async (req, res) => {
       LEFT JOIN Categorii c ON m.CategorieID = c.CategorieID
     WHERE m.AgentieID = @agencyId`);
 
-  await pool.close();
+  //await pool.close();
   res.json(result.recordset);
 });
 
@@ -1325,62 +1353,109 @@ app.get("/api/manager/contracts", async (req, res) => {
       WHERE c.AgentieID = @agencyId
     `);
     res.json(result.recordset);
-    await pool.close();
+    //await pool.close();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch contracts" });
   }
 });
 
-// Stats queries (complex)
 
-app.get("/api/stats/top-model", async (req, res) => {
+//  =================== STATISTICS =================== 
+app.get("/api/stats/top-models-by-contract-value", async (req, res) => {
   try {
     const pool = await getConnection();
     const query = `
-      SELECT TOP 1
-          m.PrenumeModel + ' ' + m.NumeModel AS full_name,
-          (SELECT COUNT(*) FROM Participari p WHERE p.ModelID = m.ModelID) AS total_events
+      SELECT TOP 5
+        m.PrenumeModel + ' ' + m.NumeModel AS model_name,
+        SUM(p.Plata) AS total_earnings
       FROM Modele m
-      ORDER BY total_events DESC
+      JOIN Participari p ON p.ModelID = m.ModelID
+      JOIN Evenimente e ON e.EvenimentID = p.EvenimentID
+      JOIN Contracte c 
+        ON c.ClientID = e.ClientID
+       AND c.AgentieID = m.AgentieID
+       AND c.Status = 'Activ'
+      GROUP BY m.ModelID, m.PrenumeModel, m.NumeModel
+      ORDER BY total_earnings DESC;
     `;
-
     const result = await pool.request().query(query);
-    res.json(result.recordset[0]); // primul rând
+    res.json(result.recordset);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-app.get("/api/stats/top-agency", async (req, res) => {
+// Complex queries
+app.get("/api/stats/models-above-avg-revenue", async (req, res) => {
   try {
     const pool = await getConnection();
     const query = `
-      SELECT TOP 1
-          a.NumeAgentie AS agency_name,
-          (SELECT COUNT(*) FROM Modele m WHERE m.AgentieID = a.AgentieID) AS total_models
+      SELECT 
+        m.NumeModel, 
+        m.PrenumeModel, 
+        SUM(p.Plata) AS TotalCastig
+      FROM Modele m
+      JOIN Participari p ON m.ModelID = p.ModelID
+      GROUP BY m.ModelID, m.NumeModel, m.PrenumeModel
+      HAVING SUM(p.Plata) > (
+          SELECT AVG(TotalPerModel)
+          FROM (
+              SELECT SUM(Plata) as TotalPerModel 
+              FROM Participari 
+              GROUP BY ModelID
+          ) as SubQueryMedia
+      )
+      ORDER BY TotalCastig DESC;
+    `;
+    const result = await pool.request().query(query);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.get("/api/stats/top-tier-agencies", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const query = `
+      SELECT a.NumeAgentie, a.Email
       FROM Agentii a
-      ORDER BY total_models DESC
-    `;
-    const result = await pool.request().query(query);
-    res.json(result.recordset[0]);
-  } catch (err) {
+      WHERE EXISTS (
+        SELECT 1 
+        FROM Modele m
+        JOIN Participari p ON m.ModelID = p.ModelID
+        JOIN Evenimente e ON p.EvenimentID = e.EvenimentID
+        WHERE m.AgentieID = a.AgentieID
+        AND e.Buget > (SELECT AVG(Buget) FROM Evenimente)
+        )
+        `;
+        const result = await pool.request().query(query);
+        res.json(result.recordset);
+      } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });
   }
 });
 
-app.get("/api/stats/top-locations", async (req, res) => {
+app.get("/api/stats/high-value-clients", async (req, res) => {
   try {
     const pool = await getConnection();
     const query = `
-      SELECT TOP 5
-        l.NumeLocatie AS name,
-        (SELECT COUNT(*) FROM Evenimente e WHERE e.LocatieID = l.LocatieID) AS total_events
-      FROM Locatii l
-      ORDER BY total_events DESC
-    `;
+    SELECT 
+    c.NumeClient, 
+    COUNT(con.ContractID) as NrContracte,
+        AVG(con.Valoare) as ValoareMedieContract
+      FROM Clienti c
+      JOIN Contracte con ON c.ClientID = con.ClientID
+      GROUP BY c.ClientID, c.NumeClient
+      HAVING AVG(con.Valoare) > (
+          SELECT AVG(Valoare) FROM Contracte WHERE Status = 'Activ'
+          )
+      ORDER BY ValoareMedieContract DESC;
+      `;
     const result = await pool.request().query(query);
     res.json(result.recordset);
   } catch (err) {
@@ -1389,19 +1464,57 @@ app.get("/api/stats/top-locations", async (req, res) => {
   }
 });
 
-app.get("/api/stats/events-today", async (req, res) => {
+app.get("/api/stats/dominant-categories", async (req, res) => {
   try {
     const pool = await getConnection();
     const query = `
-      SELECT TOP 3 e.EvenimentID AS id,
-             e.Nume AS name,
-             l.NumeLocatie AS location
+      SELECT 
+      C.DenumireCategorie,
+        SUM(P.Plata) as VenitCategorie,
+        (SELECT SUM(Plata) FROM Participari) as VenitTotalSistem
+        FROM Categorii C
+        JOIN Modele M ON C.CategorieID = M.CategorieID
+        JOIN Participari P ON M.ModelID = P.ModelID
+        GROUP BY C.CategorieID, C.DenumireCategorie
+        HAVING SUM(P.Plata) > (SELECT SUM(Plata) FROM Participari) * 0.1
+        ORDER BY VenitCategorie DESC;
+        `;
+    const result = await pool.request().query(query);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// Complex querie with variable parameter
+app.get("/api/stats/premium-events", async (req, res) => {
+  try {
+    const minBudget = req.query.minBudget || 0; // Parametrul variabil
+    const pool = await getConnection();
+    
+    const query = `
+      SELECT 
+        e.Nume AS NumeEveniment, 
+        e.Buget, 
+        l.NumeLocatie
       FROM Evenimente e
-      LEFT JOIN Locatii l ON e.LocatieID = l.LocatieID
-      WHERE CAST(e.DataEveniment AS DATE) <= CAST(GETDATE() AS DATE)
-      ORDER BY e.Nume
+      JOIN Locatii l ON e.LocatieID = l.LocatieID
+      WHERE e.Buget > @MinBudget
+      AND (
+          SELECT AVG(p.Plata) 
+          FROM Participari p 
+          WHERE p.EvenimentID = e.EvenimentID
+      ) > (
+          SELECT AVG(Plata) FROM Participari
+      )
+      ORDER BY e.Buget DESC;
     `;
-    const result = await pool.request().query(query);
+    
+    const result = await pool.request()
+        .input('MinBudget', minBudget) 
+        .query(query);
+        
     res.json(result.recordset);
   } catch (err) {
     console.error(err);
@@ -1409,25 +1522,129 @@ app.get("/api/stats/events-today", async (req, res) => {
   }
 });
 
-app.get("/api/stats/models-by-category", async (req, res) => {
+//  =================== SEARCH  =================== 
+// Variable parameters queries
+app.get("/api/modele/search", async (req, res) => {
   try {
     const pool = await getConnection();
-    const query = `
-      SELECT TOP 5
-      c.DenumireCategorie AS category_name,
-             (SELECT COUNT(*) 
-              FROM Modele m 
-              WHERE m.CategorieID = c.CategorieID) AS total_models
-      FROM Categorii c
-      ORDER BY total_models DESC
-    `;
-    const result = await pool.request().query(query);
+    const request = pool.request();
+
+    const { name, gender, minHeight } = req.query;
+
+    let sql = `SELECT 
+        m.ModelID AS id, 
+        m.NumeModel AS lastName, 
+        m.PrenumeModel AS firstName, 
+        m.Varsta AS age, 
+        m.Inaltime AS height,
+        m.Greutate AS weight,
+        a.NumeAgentie AS agencyName,
+        c.DenumireCategorie AS categoryName,
+        m.Sex AS gender
+      FROM Modele m
+      LEFT JOIN Agentii a ON m.AgentieID = a.AgentieID
+      LEFT JOIN Categorii c ON m.CategorieID = c.CategorieID
+       WHERE 1=1`;
+
+    if (name) {
+      sql += " AND PrenumeModel LIKE @name OR NumeModel LIKE @name";
+      request.input("name", `%${name}%`);
+    }
+
+    if (gender) {
+      sql += " AND Sex = @gender";
+      request.input("gender", gender);
+    }
+
+    if (minHeight) {
+      sql += " AND Inaltime >= @minHeight";
+      request.input("minHeight", Number(minHeight));
+    }
+
+    const result = await request.query(sql);
     res.json(result.recordset);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Database error" });
   }
 });
+
+
+app.get("/api/agencies/search", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const request = pool.request();
+
+    const { name, agencyCity} = req.query;
+
+    let sql = `SELECT 
+        AgentieID AS id, 
+        NumeAgentie AS name, 
+        Adresa AS adresa, 
+        Email AS email, 
+        Telefon AS telefon
+      FROM Agentii
+       WHERE 1=1`;
+
+    if (name) {
+      sql += " AND NumeAgentie LIKE @name";
+      request.input("name", `%${name}%`);
+    }
+
+    if (agencyCity) {
+      sql += " AND Adresa LIKE @agencyCity";
+      request.input("agencyCity", `%${agencyCity}%`);
+    }
+
+    const result = await request.query(sql);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+
+app.get("/api/locations/search", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const request = pool.request();
+
+    const { name, city, minCapacity } = req.query;
+
+    let sql = `SELECT 
+        LocatieID AS id, 
+        NumeLocatie AS name, 
+        Adresa AS adresa, 
+        Oras AS city, 
+        Capacitate AS capacity,
+        TelefonContact AS phone
+      FROM Locatii
+       WHERE 1=1`;
+
+    if (name) {
+      sql += " AND NumeLocatie LIKE @name";
+      request.input("name", `%${name}%`);
+    }
+
+    if (city) {
+      sql += " AND Oras LIKE @city";
+      request.input("city", city);
+    }
+
+    if (minCapacity) {
+      sql += " AND Capacitate >= @minCapacity";
+      request.input("minCapacity", Number(minCapacity));
+    }
+
+    const result = await request.query(sql);
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
